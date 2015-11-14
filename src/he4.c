@@ -22,13 +22,13 @@
  * How the data structure works.
  *
  * The table is stored in three arrays.  There is a key array, a key length
- * array, and an entry array: (key, key length) -> entry.
+ * array, a hash array, and an entry array: (key, key length, hash) -> entry.
  *
  * Lazy deletion is supported by freeing both the key and entry and replacing
  * them with NULL, but setting the key length to one (or any non-zero value).
  *
  * klen == 0 --> an empty cell.
- * klen > 0 && key == NULL --> a lazy empty cell.
+ * klen > 0 && key == NULL --> a deleted cell.
  * klen > 0 && key != NULL --> a non-empty cell.
  */
 
@@ -39,17 +39,37 @@
 int he4_debug = 0;
 
 //======================================================================
+// Local functions.
+//======================================================================
+
+static inline bool
+is_empty(HE4 * table, size_t index) {
+    return table->klen[index] == 0;
+}
+
+static inline bool
+is_deleted(HE4 * table, size_t index) {
+    return table->klen[index] > 0 && table->keys[index] == NULL;
+}
+
+static inline bool
+is_open(HE4 * table, size_t index) {
+    return table->keys[index] == NULL;
+}
+
+//======================================================================
 // Default functions.
 //======================================================================
 
 /**
- * This is the default hash function.
+ * This is the default hash function.  You cannot use this function if you
+ * have re-defined the hash type.
  *
  * @param key           Pointer to the key to hash.
  * @param length        Number of bytes in key.
  * @return              The hash value.
  */
-static uint32_t
+static he4_hash_t
 he4_hash(const he4_key_t key, const size_t length) {
     return XXH32(key, length, 0);
 }
@@ -98,14 +118,15 @@ he4_best_capacity(size_t bytes) {
     bytes -= sizeof(HE4) * sizeof(char);
     // Every map must include (1) a key, (2) the key length, and (3) an
     // entry.
-    size_t map_size = sizeof(he4_key_t) + sizeof(he4_entry_t) + sizeof(size_t);
+    size_t map_size = sizeof(he4_key_t) + sizeof(he4_entry_t) +
+            sizeof(size_t) + sizeof(he4_hash_t);
     size_t maximum = bytes / (map_size * sizeof(char));
     return maximum;
 }
 
 HE4 *
 he4_new(size_t entries,
-        uint32_t (* hash)(he4_key_t key, size_t klen),
+        he4_hash_t (* hash)(he4_key_t key, size_t klen),
         int (* compare)(he4_key_t key1, size_t klen1, he4_key_t key2,
                         size_t klen2),
         void (* delete_key)(he4_key_t key),
@@ -116,6 +137,13 @@ he4_new(size_t entries,
               entries, HE4_MINIMUM_SIZE);
         return NULL;
     }
+#ifdef HE4_USER_HASH
+    if (hash == NULL) {
+        DEBUG("User must supply a hash function since a custom hash type is "
+              "defined.");
+        return NULL;
+    }
+#endif
 
     // Allocate the table.
     HE4 * table = HE4MALLOC(HE4, 1);
@@ -147,9 +175,21 @@ he4_new(size_t entries,
         HE4FREE(table);
         return NULL;
     }
+    table->hashes = HE4MALLOC(he4_hash_t, entries);
+    if (table->hash == NULL) {
+        DEBUG("Unable to get memory for hash table.");
+        HE4FREE(table->klen);
+        table->klen = NULL;
+        HE4FREE(table->keys);
+        table->keys = NULL;
+        HE4FREE(table);
+        return NULL;
+    }
     table->entries = HE4MALLOC(he4_entry_t, entries);
     if (table->entries == NULL) {
         DEBUG("Unable to get memory for entry table.");
+        HE4FREE(table->hashes);
+        table->hashes = NULL;
         HE4FREE(table->klen);
         table->klen = NULL;
         HE4FREE(table->keys);
@@ -185,6 +225,10 @@ he4_delete(HE4 * table) {
     table->delete_entry = NULL;
 
     // Delete the internal arrays.
+    HE4FREE(table->klen);
+    table->klen = NULL;
+    HE4FREE(table->hashes);
+    table->hashes = NULL;
     HE4FREE(table->keys);
     table->keys = NULL;
     HE4FREE(table->entries);
@@ -239,20 +283,23 @@ he4_insert(HE4 * table, const he4_key_t key, const size_t klen,
     }
 
     // Hash the key, then wrap to table size.
-    size_t start = table->hash(key, klen) % table->capacity;
+    he4_hash_t hash = table->hash(key, klen);
+    size_t start = hash % table->capacity;
     size_t index = start;
 
-    // Insert at first open (lazy or not) slot, or overwrite a match.
+    // Insert at first open slot, or overwrite a match.
     do {
-        if (table->keys[index] == NULL) {
+        if (is_open(table, index)) {
             // Found the place to insert.
             table->keys[index] = key;
             table->klen[index] = klen;
+            table->hashes[index] = hash;
             table->entries[index] = entry;
             --(table->free);
             return false;
         }
-        if (table->compare(table->keys[index], table->klen[index], key, klen) == 0) {
+        if (table->hashes[index] == hash &&
+                table->compare(table->keys[index], table->klen[index], key, klen) == 0) {
             // Found the key.  Replace the entry.
             table->delete_entry(table->entries[index]);
             table->entries[index] = entry;
@@ -287,20 +334,23 @@ he4_force_insert(HE4 * table, const he4_key_t key, const size_t klen,
     }
 
     // Hash the key, then wrap to table size.
-    size_t start = table->hash(key, klen) % table->capacity;
+    he4_hash_t hash = table->hash(key, klen);
+    size_t start = hash % table->capacity;
     size_t index = start;
 
-    // Insert at first open (lazy or not) slot, or overwrite a match.
+    // Insert at first open slot, or overwrite a match.
     do {
-        if (table->keys[index] == NULL) {
+        if (is_open(table, index)) {
             // Found the place to insert.
             table->keys[index] = key;
             table->klen[index] = klen;
+            table->hashes[index] = hash;
             table->entries[index] = entry;
             --(table->free);
             return false;
         }
-        if (table->compare(table->keys[index], table->klen[index], key, klen) == 0) {
+        if (table->hashes[index] == hash &&
+                table->compare(table->keys[index], table->klen[index], key, klen) == 0) {
             // Found the key.  Replace the entry.
             table->delete_entry(table->entries[index]);
             table->entries[index] = entry;
@@ -315,6 +365,7 @@ he4_force_insert(HE4 * table, const he4_key_t key, const size_t klen,
     table->delete_key(table->keys[index]);
     table->keys[index] = key;
     table->klen[index] = klen;
+    table->hashes[index] = hash;
     table->delete_entry(table->entries[index]);
     table->entries[index] = entry;
     return true;
@@ -337,23 +388,29 @@ he4_remove(HE4 * table, const he4_key_t key, const size_t klen) {
     }
 
     // Hash the key, then wrap to table size.
-    size_t start = table->hash(key, klen) % table->capacity;
+    he4_hash_t hash = table->hash(key, klen);
+    size_t start = hash % table->capacity;
     size_t index = start;
 
     // Find the corresponding entry.  Stop if we wrap around, which can happen
     // with a full table.
     do {
-        // If we hit an (non-lazy) empty cell, we can stop.
-        if (table->klen[index] == 0) return NULL;
+        // If we hit an empty cell, we can stop.
+        if (is_empty(table, index)) return NULL;
+
+        // Skip deleted cells.
+        if (is_deleted(table, index)) continue;
 
         // Check the current slot.
-        if (table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
+        if (table->hashes[index] == hash &&
+                table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
             // Found the entry.  Remove it.
             table->delete_key(table->keys[index]);
             table->keys[index] = NULL;
             he4_entry_t entry = table->entries[index];
             table->entries[index] = NULL;
             table->klen[index] = 1;
+            table->hashes[index] = 0;
             ++(table->free);
             return entry;
         }
@@ -383,23 +440,29 @@ he4_discard(HE4 * table, const he4_key_t key, const size_t klen) {
     }
 
     // Hash the key, then wrap to table size.
-    size_t start = table->hash(key, klen) % table->capacity;
+    he4_hash_t hash = table->hash(key, klen);
+    size_t start = hash % table->capacity;
     size_t index = start;
 
     // Find the corresponding entry.  Stop if we wrap around, which can happen
     // with a full table.
     do {
-        // If we find a non-lazy empty cell, we can stop.
-        if (table->klen[index] == 0) return true;
+        // If we find an empty cell, we can stop.
+        if (is_empty(table, index)) return true;
+
+        // Skip deleted cells.
+        if (is_deleted(table, index)) continue;
 
         // Check the current slot.
-        if (table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
-            // Found the entry.  Remove it, and mark the cell as lazy deleted.
+        if (table->hashes[index] == hash &&
+                table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
+            // Found the entry.  Remove it, and mark the cell as deleted.
             table->delete_key(table->keys[index]);
             table->keys[index] = NULL;
             table->delete_entry(table->entries[index]);
             table->entries[index] = NULL;
             table->klen[index] = 1;
+            table->hashes[index] = 0;
             ++(table->free);
             return false;
         }
@@ -429,7 +492,8 @@ he4_get(HE4 * table, const he4_key_t key, const size_t klen) {
     }
 
     // Hash the key, then wrap to table size.
-    size_t start = table->hash(key, klen) % table->capacity;
+    he4_hash_t hash = table->hash(key, klen);
+    size_t start = hash % table->capacity;
     size_t index = start;
 
     // Find the corresponding entry.  Stop if we wrap around, which can happen
@@ -437,18 +501,19 @@ he4_get(HE4 * table, const he4_key_t key, const size_t klen) {
     bool lazy = false;
     size_t lazy_index = 0;
     do {
-        // If we find a non-lazy empty slot, stop.
-        if (table->klen[index] == 0) return NULL;
+        // If we find an empty slot, stop.
+        if (is_empty(table, index)) return NULL;
 
-        // Keep track of the first lazy-deleted slot that is open.
-        if (!lazy && table->keys[index] == NULL) {
+        // Keep track of the first deleted slot that is open.
+        if (!lazy && is_deleted(table, index)) {
             // This is a lazy-deleted cell.
             lazy = true;
             lazy_index = index;
         }
 
         // Check the current slot.
-        if (table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
+        if (table->hashes[index] == hash &&
+                table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
             // Found the entry.  If we have a lazy-deleted index, move it there.
             he4_entry_t entry = table->entries[index];
             if (lazy) {
@@ -457,14 +522,14 @@ he4_get(HE4 * table, const he4_key_t key, const size_t klen) {
                 table->klen[lazy_index] = table->klen[index];
                 table->keys[index] = NULL;
                 table->entries[index] = NULL;
-                table->klen[index] = 0;
+                table->klen[index] = 1;
             }
             return entry;
         }
 
         // Move to the next slot.
         index = (index + 1) % table->capacity;
-    } while (start != index); // Find and remove the entry.
+    } while (start != index); // Find the entry.
 
     // Not found.
     return NULL;

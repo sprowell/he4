@@ -117,6 +117,19 @@ typedef HE4_ENTRY_TYPE he4_entry_t;
  */
 typedef HE4_KEY_TYPE he4_key_t;
 
+#ifndef HE4_HASH_TYPE
+#  define HE4_HASH_TYPE uint32_t
+#else
+#  define HE4_USER_HASH
+#endif
+/**
+ * Specify the type of a hash value.  By default this is `uint32_t`.  To
+ * override this define the macro `HE4_HASH_TYPE` and be sure you provide
+ * your own properly typed hash function when you create a table, or the
+ * library won't create the table.
+ */
+typedef HE4_HASH_TYPE he4_hash_t;
+
 //======================================================================
 // Debugging.
 //======================================================================
@@ -153,7 +166,7 @@ extern int he4_debug;
  */
 typedef struct {
     /// Hash function.
-    uint32_t (* hash)(he4_key_t key, size_t klen);
+    he4_hash_t (* hash)(he4_key_t key, size_t klen);
 
     /// Key comparison function.
     int (* compare)(he4_key_t key1, size_t klen1, he4_key_t key2,
@@ -169,6 +182,7 @@ typedef struct {
     size_t free;            ///< Number of free cells.
     he4_key_t * keys;       ///< Keys, allocated at construction.
     size_t * klen;          ///< Key lengths, allocated at construction.
+    he4_hash_t * hashes;    ///< Key hashes, allocated at construction.
     he4_entry_t * entries;  ///< Entries, allocated at construction.
 } HE4;
 
@@ -235,7 +249,7 @@ size_t he4_best_capacity(size_t bytes);
  * @return              The newly allocated table, or NULL if creation fails.
  */
 HE4 * he4_new(size_t entries,
-              uint32_t (* hash)(he4_key_t key, size_t klen),
+              he4_hash_t (* hash)(he4_key_t key, size_t klen),
               int (* compare)(he4_key_t key1, size_t klen1, he4_key_t key2,
                               size_t klen2),
               void (* delete_key)(he4_key_t key),
