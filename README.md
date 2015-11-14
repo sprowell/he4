@@ -39,6 +39,8 @@ Of course you can *force* a rehash.  Code like the following is recommended,
 if you have memory to spare.
 
 ```c
-if (he4_load(table) > 0.7) table = he4_rehash(table);
+if (he4_load(table) > 0.7) table = he4_rehash(table, 0);
 ```
 
+The second argument (`0`) uses the default new capacity, which is double the
+old capacity.
