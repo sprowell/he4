@@ -549,3 +549,40 @@ he4_index(HE4 * table, const size_t index) {
     map->entry = table->entries[index];
     return map;
 }
+
+//======================================================================
+// Rehash.
+//======================================================================
+
+HE4 *
+he4_rehash(HE4 * table, const size_t newsize) {
+    if (table == NULL) {
+        // We could treat this as an empty table, but this is almost certainly
+        // an error.
+        DEBUG("Attempt to rehash a NULL table.");
+        return NULL;
+    }
+    size_t capacity = newsize == 0 ? table->capacity * 2 : newsize;
+    if (capacity <= table->capacity) {
+        DEBUG("New table capacity is too small.");
+        return NULL;
+    }
+
+    // Make the new table.
+    HE4 * newtable = he4_new(capacity, table->hash, table->compare,
+                             table->delete_key, table->delete_entry);
+    if (newtable == NULL) {
+        DEBUG("Unable to get memory for rehashed table.");
+        return NULL;
+    }
+
+    // Move everything to the rehashed table.
+    for (size_t index = 0; index < table->capacity; ++index) {
+        he4_map_t * map = he4_index(table, index);
+        he4_insert(table, map->key, map->klen, map->entry);
+    } // Rehash the table.
+
+    // Free the original table.
+    he4_delete(table);
+    return newtable;
+}

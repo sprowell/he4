@@ -72,13 +72,19 @@ main(int argc, char * argv[]) {
         he4_insert(table, strdup(buffer), len, value+1);
         // This works because when an item is not found, NULL is returned, and
         // NULL is (essentially) zero.
+        if (he4_load(table) > 0.7) {
+            fprintf(stdout, "Rehashing... ");
+            table = he4_rehash(table, 0);
+            fprintf(stdout, "Table capacity is now %ld.\n", table->capacity);
+        }
     } // Process all lines.
 
     // Now write the counts.
     for (size_t index = 0; index < table->capacity; ++index) {
         he4_map_t * map = he4_index(table, index);
         if (map != NULL && map->key != NULL) {
-            fprintf(stdout, "%4zu: \"%s\"(%ld) -> %d\n", index, map->key, map->klen, map->entry);
+            fprintf(stdout, "%4zu: \"%s\"(%ld) -> %d\n", index, map->key,
+                    map->klen, map->entry);
         }
         HE4FREE(map);
     } // Write all counts.

@@ -411,6 +411,24 @@ he4_entry_t he4_get(HE4 * table, const he4_key_t key, const size_t klen);
  */
 he4_map_t * he4_index(HE4 * table, const size_t index);
 
+//======================================================================
+// Rehash.
+//======================================================================
+
+/**
+ * Rehash the table to one with the provided size.  This frees the original
+ * table, so do not use it!
+ *
+ * If the provided size is not larger than the original size then `NULL` is
+ * returned.  If the provided size is zero, then the new size will be double
+ * the original size.
+ *
+ * @param table         The original table.
+ * @param newsize       The new table size.
+ * @return              The new table, or `NULL` if it cannot be created.
+ */
+HE4 * he4_rehash(HE4 * table, const size_t newsize);
+
 // TODO Write an iterator.
 
 #ifdef __cplusplus

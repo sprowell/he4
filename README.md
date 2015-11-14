@@ -13,7 +13,7 @@ The idea of this library is to create a very, very fast in-memory hash
 table implementation. The following are the design criteria.
 
  * This is a fixed-size hash table; new memory is never allocated by this
-   library once the initial table is created.
+   library once the initial table is created, but you *can* force a rehash.
  * Because the table is fixed-size, it can fill up.  If it fills up, then
    there are two possible outcomes: new entries are dropped, or older
    entries are dropped.
@@ -34,3 +34,11 @@ improve search time.
 **Be aware!**  If the table becomes full your performance is going to be
 *horrible*.  Again, a full table will have *horrible* performance, since
 it cannot automagically rehash.
+
+Of course you can *force* a rehash.  Code like the following is recommended,
+if you have memory to spare.
+
+```c
+if (he4_load(table) > 0.7) table = he4_rehash(table);
+```
+
