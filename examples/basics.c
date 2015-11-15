@@ -19,7 +19,10 @@
 #define HE4_ENTRY_TYPE int
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include <he4.h>
+
+#define INITIAL_TABLE_SIZE 64
 
 /**
  * The function to "deallocate" an entry.  Entries are simple integers, so we
@@ -55,7 +58,12 @@ main(int argc, char * argv[]) {
 
     // Create a table.  Use the defaults for everything except deleting an
     // entry.
-    HE4 * table = he4_new(8192, NULL, NULL, NULL, free_entry);
+    HE4 * table = he4_new(INITIAL_TABLE_SIZE, NULL, NULL, NULL, free_entry);
+
+    // Time the operation.
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
 
     // Now process the input file.
     char buffer[4096];
@@ -79,6 +87,10 @@ main(int argc, char * argv[]) {
         }
     } // Process all lines.
 
+    // Get the elapsed time.
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
     // Now write the counts.
     for (size_t index = 0; index < table->capacity; ++index) {
         he4_map_t * map = he4_index(table, index);
@@ -88,6 +100,9 @@ main(int argc, char * argv[]) {
         }
         HE4FREE(map);
     } // Write all counts.
+
+    // Tell the user how much time was taken.
+    fprintf(stdout, "CPU Time Used: %f seconds\n", cpu_time_used);
 
     // Done.  Free the map.
     he4_delete(table);
