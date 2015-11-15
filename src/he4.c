@@ -13,7 +13,6 @@
  * according to those terms.
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include <he4.h>
 #include "xxhash.h"

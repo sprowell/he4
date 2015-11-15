@@ -76,6 +76,17 @@ extern "C" {
 // Whatever method you use should also zero out memory, a la calloc.
 // This is important!
 
+// This library comes with Doug Lea's malloc.  Set the correct value in the
+// CMakeLists.txt file and compile.  If you just set the HE4_DLMALLOC here you
+// won't magically get the necessary compiled code.
+
+#ifdef HE4_DLMALLOC
+#  include "../src/malloc.h"
+#  define HE4MALLOC(m_thing, m_number) \
+        (m_thing *)dlcalloc(m_number, sizeof(m_thing))
+#  define HE4FREE(m_ptr) \
+        ((m_ptr == NULL) ? NULL : dlfree(m_ptr), NULL)
+#else
 #ifndef HE4MALLOC
 #include <stdlib.h>
 /**
@@ -85,8 +96,9 @@ extern "C" {
  * @param m_number    How many things to allocate.
  * @return            A pointer to the allocated things.
  */
-#define HE4MALLOC(m_thing, m_number) (m_thing *)calloc(m_number, sizeof(m_thing))
-#endif
+#define HE4MALLOC(m_thing, m_number) \
+        (m_thing *)calloc(m_number, sizeof(m_thing))
+#endif // HE4MALLOC
 #ifndef HE4FREE
 #include <stdlib.h>
 /**
@@ -94,8 +106,10 @@ extern "C" {
  *
  * @param m_ptr       Pointer to the thing to deallocate.
  */
-#define HE4FREE(m_ptr) ((m_ptr == NULL) ? NULL : free(m_ptr), NULL)
-#endif
+#define HE4FREE(m_ptr) \
+        ((m_ptr == NULL) ? NULL : free(m_ptr), NULL)
+#endif // HE4FREE
+#endif // HE4_DLMALLOC
 
 #ifndef HE4_ENTRY_TYPE
 #  define HE4_ENTRY_TYPE void *

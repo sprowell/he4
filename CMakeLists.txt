@@ -5,8 +5,17 @@ project(he4)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_MACOSX_RPATH 1)
 
+# If you want to use Doug Lea's malloc, uncomment this.  You may get warnings,
+# as sbrk is deprecated on some platforms.  That's just the way it is.
+#set(HE4_DLMALLOC 1)
+
 include_directories(AFTER SYSTEM include)
 set(LIBRARY_FILES src/he4.c src/xxhash.c src/xxhsum.c)
+if (HE4_DLMALLOC)
+    message("Using Doug Lea's malloc.")
+    set(LIBRARY_FILES ${LIBRARY_FILES} src/malloc.c)
+    add_definitions(-DHE4_DLMALLOC)
+endif (HE4_DLMALLOC)
 add_library(he4_static STATIC ${LIBRARY_FILES})
 add_library(he4_shared SHARED ${LIBRARY_FILES})
 set_property(TARGET he4_static PROPERTY POSITION_INDEPENDENT_CODE 1)
