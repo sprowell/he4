@@ -18,7 +18,7 @@ table implementation in C99. The following are the design criteria.
    there are two possible outcomes: new entries are dropped, or older
    entries are dropped.
  * A default hash algorithm is supplied; you can use your own.  The default
-   is the [xxHash algorithm](https://github.com/Cyan4973/xxHash).
+   is the [xxHash algorithm][xxhash].
    
 Why?  Well, embedded systems with fixed memory may need hash tables, too.
 
@@ -56,10 +56,11 @@ old capacity.
 
 ## Include Files and Dependencies
 
-The library includes Doug Lea's `malloc` implementation.  If you want to use it,
-then uncomment the correct line in `CMakeLists.txt`.  Alternately you can just
-`#define` the macros `HE4MALLOC` and `HE4FREE` as indicated in `he4.h`.  In
-all these cases, `stdlib.h` is no longer included and no longer required.
+The library includes [Doug Lea's][dlmalloc] `malloc` implementation.  If you
+want to use it, then uncomment the correct line in `CMakeLists.txt`.
+Alternately you can just `#define` the macros `HE4MALLOC` and `HE4FREE` as
+indicated in `he4.h`.  In all these cases, `stdlib.h` is no longer included and
+no longer required.
 
 The debugging facility uses `stdio.h`.  You can `#define NODEBUG` to eliminate
 this dependency.
@@ -69,10 +70,15 @@ Building requires `string.h`, and the string library is needed to run.  It
 should not be hard to replace it if you need to.
 
 If you want debugging but can't tolerate `stdio.h`, have a look at
-[this library](http://git.infradead.org/users/segher/savezelda.git/tree/HEAD:/loader),
-or at [this implementation](http://www.pagetable.com/?p=298).
+[this library][savezelda], or at [this implementation][pagetable].
 
 ## License
 
 This is licensed under the two-clause "simplified" BSD license.  See the
 [LICENSE](LICENSE) file in the distribution.
+
+
+[xxhash]: https://github.com/Cyan4973/xxHash
+[dlmalloc]: http://g.oswego.edu
+[savezelda]: http://git.infradead.org/users/segher/savezelda.git/tree/HEAD:/loader
+[pagetable]: http://www.pagetable.com/?p=298
