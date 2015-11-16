@@ -8,7 +8,7 @@ if (APPLE)
     add_definitions(-DDARWIN)
 endif (APPLE)
 
-add_definitions(-DHE4_VERSION="1.0.0")
+add_definitions(-DHE4_VERSION="1.0.1")
 
 ######################################################################
 ##
@@ -16,14 +16,24 @@ add_definitions(-DHE4_VERSION="1.0.0")
 ##
 ######################################################################
 
-# If you want to use Doug Lea's malloc, uncomment this.  You may get warnings,
-# as sbrk is deprecated on some platforms.  That's just the way it is.
+# If you want to use Doug Lea's malloc, uncomment this.
+#
 #set(HE4_DLMALLOC 1)
 
 # If you want to suppress the standard library, uncomment this line and define
 # your own malloc (or uncomment the line to use Doug Lea's).  This will also
 # suppress debugging.
+#
 #set(NO_STD_LIB 1)
+
+# By default the library includes an additional entry called the "touch index"
+# for every cell.  Every time a cell is set or found, the maximum touch index
+# for the table is incremented, and the value is stored with the cell.  This
+# means that the least-recently-used cell will have the lowest touch index.
+# This also takes time and space.  You can disable it by uncommenting the
+# following line.
+#
+#add_definitions(-DHE4NOTOUCH)
 
 ######################################################################
 

@@ -17,6 +17,11 @@
 #include <he4.h>
 #include "xxhash.h"
 
+// Make sure the version is defined.  If not, then given an error.
+#ifndef HE4_VERSION
+#error HE4_VERSION must be defined.
+#endif
+
 /*
  * How the data structure works.
  *
@@ -37,23 +42,54 @@
  */
 int he4_debug = 0;
 
+char *
+he4_version() {
+    return HE4_VERSION;
+}
+
 //======================================================================
 // Local functions.
 //======================================================================
 
+/**
+ * Determine if a cell is empty.  An empty cell is one that has never held
+ * a value.  A deleted cell is not considered empty.
+ *
+ * @param table         The table.
+ * @param index         The index of the cell.
+ * @return              True if the cell is empty, and false otherwise.
+ */
 static inline bool
 is_empty(HE4 * table, size_t index) {
-    return table->klen[index] == 0;
+    return table->maps[index].klen == 0;
 }
 
+/**
+ * Determine if a cell is deleted ("lazy empty").  An deleted cell is one that
+ * previously held a value.  A deleted cell is not considered empty.
+ *
+ * @param table         The table.
+ * @param index         The index of the cell.
+ * @return              True if the cell is deleted, and false otherwise.
+ */
 static inline bool
 is_deleted(HE4 * table, size_t index) {
-    return table->klen[index] > 0 && table->keys[index] == NULL;
+    return table->maps[index].klen > 0 && table->maps[index].key == NULL;
 }
 
+/**
+ * Determine if a cell is open.  An open cell is one that can have a value
+ * placed in it.  Both empty and deleted cells are considered open, so this
+ * is equivalent to the check
+ * `is_empty(table, index) || is_deleted(table, index)`.
+ *
+ * @param table         The table.
+ * @param index         The index of the cell.
+ * @return              True if the cell is open, and false otherwise.
+ */
 static inline bool
 is_open(HE4 * table, size_t index) {
-    return table->keys[index] == NULL;
+    return table->maps[index].key == NULL;
 }
 
 //======================================================================
@@ -117,9 +153,7 @@ he4_best_capacity(size_t bytes) {
     bytes -= sizeof(HE4) * sizeof(char);
     // Every map must include (1) a key, (2) the key length, and (3) an
     // entry.
-    size_t map_size = sizeof(he4_key_t) + sizeof(he4_entry_t) +
-            sizeof(size_t) + sizeof(he4_hash_t);
-    size_t maximum = bytes / (map_size * sizeof(char));
+    size_t maximum = bytes / (sizeof(he4_map_t) * sizeof(char));
     return maximum;
 }
 
@@ -158,41 +192,14 @@ he4_new(size_t entries,
     table->delete_key = delete_key == NULL ? he4_delete_key : delete_key;
     table->free = entries;
     table->hash = hash == NULL ? he4_hash : hash;
+#ifndef HE4NOTOUCH
+    table->max_touch = 0;
+#endif // HE4NOTOUCH
 
     // Allocate the key and entry arrays.
-    table->keys = HE4MALLOC(he4_key_t, entries);
-    if (table->keys == NULL) {
-        DEBUG("Unable to get memory for key table.");
-        HE4FREE(table);
-        return NULL;
-    }
-    table->klen = HE4MALLOC(size_t, entries);
-    if (table->klen == NULL) {
-        DEBUG("Unable to get memory for key length array.");
-        HE4FREE(table->keys);
-        table->keys = NULL;
-        HE4FREE(table);
-        return NULL;
-    }
-    table->hashes = HE4MALLOC(he4_hash_t, entries);
-    if (table->hash == NULL) {
-        DEBUG("Unable to get memory for hash table.");
-        HE4FREE(table->klen);
-        table->klen = NULL;
-        HE4FREE(table->keys);
-        table->keys = NULL;
-        HE4FREE(table);
-        return NULL;
-    }
-    table->entries = HE4MALLOC(he4_entry_t, entries);
-    if (table->entries == NULL) {
-        DEBUG("Unable to get memory for entry table.");
-        HE4FREE(table->hashes);
-        table->hashes = NULL;
-        HE4FREE(table->klen);
-        table->klen = NULL;
-        HE4FREE(table->keys);
-        table->keys = NULL;
+    table->maps = HE4MALLOC(he4_map_t, entries);
+    if (table->maps == NULL) {
+        DEBUG("Unable to get memory for the table.");
         HE4FREE(table);
         return NULL;
     }
@@ -212,9 +219,13 @@ he4_delete(HE4 * table) {
     table->free = 0;
     table->capacity = 0;
     for (size_t index = 0; index < table->capacity; ++index) {
-        table->klen[index] = 0;
-        if (table->keys[index] != NULL) table->delete_key(table->keys[index]);
-        if (table->entries[index] != NULL) table->delete_entry(table->entries[index]);
+        table->maps[index].klen = 0;
+        if (table->maps[index].key != NULL) {
+            table->delete_key(table->maps[index].key);
+        }
+        if (table->maps[index].entry != NULL) {
+            table->delete_entry(table->maps[index].entry);
+        }
     } // Delete any remaining entries.
 
     // Wipe the method table.
@@ -224,14 +235,8 @@ he4_delete(HE4 * table) {
     table->delete_entry = NULL;
 
     // Delete the internal arrays.
-    HE4FREE(table->klen);
-    table->klen = NULL;
-    HE4FREE(table->hashes);
-    table->hashes = NULL;
-    HE4FREE(table->keys);
-    table->keys = NULL;
-    HE4FREE(table->entries);
-    table->entries = NULL;
+    HE4FREE(table->maps);
+    table->maps = NULL;
     HE4FREE(table);
 }
 
@@ -255,6 +260,13 @@ he4_load(HE4 * table) {
     if (table == NULL) return 1.0;
     return (double)(table->capacity - table->free) / (double)(table->capacity);
 }
+
+#ifndef HE4NOTOUCH
+size_t
+he4_max_touch(HE4 * table) {
+    return table->max_touch;
+}
+#endif // HE4NOTOUCH
 
 //======================================================================
 // Table insertion / deletion functions.
@@ -290,18 +302,27 @@ he4_insert(HE4 * table, const he4_key_t key, const size_t klen,
     do {
         if (is_open(table, index)) {
             // Found the place to insert.
-            table->keys[index] = key;
-            table->klen[index] = klen;
-            table->hashes[index] = hash;
-            table->entries[index] = entry;
+            table->maps[index].key = key;
+            table->maps[index].klen = klen;
+            table->maps[index].hash = hash;
+            table->maps[index].entry = entry;
+#ifndef HE4NOTOUCH
+            ++(table->max_touch);
+            table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
             --(table->free);
             return false;
         }
-        if (table->hashes[index] == hash &&
-                table->compare(table->keys[index], table->klen[index], key, klen) == 0) {
+        if (table->maps[index].hash == hash &&
+                table->compare(table->maps[index].key, table->maps[index].klen,
+                               key, klen) == 0) {
             // Found the key.  Replace the entry.
-            table->delete_entry(table->entries[index]);
-            table->entries[index] = entry;
+            table->delete_entry(table->maps[index].entry);
+            table->maps[index].entry = entry;
+#ifndef HE4NOTOUCH
+            ++(table->max_touch);
+            table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
             return false;
         }
         index = (index + 1) % table->capacity;
@@ -341,18 +362,27 @@ he4_force_insert(HE4 * table, const he4_key_t key, const size_t klen,
     do {
         if (is_open(table, index)) {
             // Found the place to insert.
-            table->keys[index] = key;
-            table->klen[index] = klen;
-            table->hashes[index] = hash;
-            table->entries[index] = entry;
+            table->maps[index].key = key;
+            table->maps[index].klen = klen;
+            table->maps[index].hash = hash;
+            table->maps[index].entry = entry;
+#ifndef HE4NOTOUCH
+            ++(table->max_touch);
+            table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
             --(table->free);
             return false;
         }
-        if (table->hashes[index] == hash &&
-                table->compare(table->keys[index], table->klen[index], key, klen) == 0) {
+        if (table->maps[index].hash == hash &&
+                table->compare(table->maps[index].key, table->maps[index].klen,
+                               key, klen) == 0) {
             // Found the key.  Replace the entry.
-            table->delete_entry(table->entries[index]);
-            table->entries[index] = entry;
+            table->delete_entry(table->maps[index].entry);
+            table->maps[index].entry = entry;
+#ifndef HE4NOTOUCH
+            ++(table->max_touch);
+            table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
             return false;
         }
         index = (index + 1) % table->capacity;
@@ -361,12 +391,16 @@ he4_force_insert(HE4 * table, const he4_key_t key, const size_t klen,
     // We did not find an open slot, and we did not find a match.  Force
     // insertion at the current position (which is the first position for the
     // given key).
-    table->delete_key(table->keys[index]);
-    table->keys[index] = key;
-    table->klen[index] = klen;
-    table->hashes[index] = hash;
-    table->delete_entry(table->entries[index]);
-    table->entries[index] = entry;
+    table->delete_key(table->maps[index].key);
+    table->maps[index].key = key;
+    table->maps[index].klen = klen;
+    table->maps[index].hash = hash;
+    table->delete_entry(table->maps[index].entry);
+    table->maps[index].entry = entry;
+#ifndef HE4NOTOUCH
+    ++(table->max_touch);
+    table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
     return true;
 }
 
@@ -401,15 +435,16 @@ he4_remove(HE4 * table, const he4_key_t key, const size_t klen) {
         if (is_deleted(table, index)) continue;
 
         // Check the current slot.
-        if (table->hashes[index] == hash &&
-                table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
+        if (table->maps[index].hash == hash &&
+                table->compare(key, klen, table->maps[index].key,
+                               table->maps[index].klen) == 0) {
             // Found the entry.  Remove it.
-            table->delete_key(table->keys[index]);
-            table->keys[index] = NULL;
-            he4_entry_t entry = table->entries[index];
-            table->entries[index] = NULL;
-            table->klen[index] = 1;
-            table->hashes[index] = 0;
+            table->delete_key(table->maps[index].key);
+            table->maps[index].key = NULL;
+            he4_entry_t entry = table->maps[index].entry;
+            table->maps[index].entry = NULL;
+            table->maps[index].klen = 1;
+            table->maps[index].hash = 0;
             ++(table->free);
             return entry;
         }
@@ -453,15 +488,15 @@ he4_discard(HE4 * table, const he4_key_t key, const size_t klen) {
         if (is_deleted(table, index)) continue;
 
         // Check the current slot.
-        if (table->hashes[index] == hash &&
-                table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
+        if (table->maps[index].hash == hash &&
+                table->compare(key, klen, table->maps[index].key, table->maps[index].klen) == 0) {
             // Found the entry.  Remove it, and mark the cell as deleted.
-            table->delete_key(table->keys[index]);
-            table->keys[index] = NULL;
-            table->delete_entry(table->entries[index]);
-            table->entries[index] = NULL;
-            table->klen[index] = 1;
-            table->hashes[index] = 0;
+            table->delete_key(table->maps[index].key);
+            table->maps[index].key = NULL;
+            table->delete_entry(table->maps[index].entry);
+            table->maps[index].entry = NULL;
+            table->maps[index].klen = 1;
+            table->maps[index].hash = 0;
             ++(table->free);
             return false;
         }
@@ -511,17 +546,23 @@ he4_get(HE4 * table, const he4_key_t key, const size_t klen) {
         }
 
         // Check the current slot.
-        if (table->hashes[index] == hash &&
-                table->compare(key, klen, table->keys[index], table->klen[index]) == 0) {
+        if (table->maps[index].hash == hash &&
+                table->compare(key, klen, table->maps[index].key, table->maps[index].klen) == 0) {
             // Found the entry.  If we have a lazy-deleted index, move it there.
-            he4_entry_t entry = table->entries[index];
+            he4_entry_t entry = table->maps[index].entry;
             if (lazy) {
-                table->keys[lazy_index] = table->keys[index];
-                table->entries[lazy_index] = table->entries[index];
-                table->klen[lazy_index] = table->klen[index];
-                table->keys[index] = NULL;
-                table->entries[index] = NULL;
-                table->klen[index] = 1;
+                memcpy(&(table->maps[lazy_index]), &(table->maps[index]),
+                       sizeof(he4_map_t));
+                table->maps[index].key = NULL;
+                table->maps[index].entry = NULL;
+                table->maps[index].klen = 1;
+#ifndef HE4NOTOUCH
+                ++(table->max_touch);
+                table->maps[lazy_index].touch = table->max_touch;
+            } else {
+                ++(table->max_touch);
+                table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
             }
             return entry;
         }
@@ -543,9 +584,7 @@ he4_index(HE4 * table, const size_t index) {
     if (table == NULL || index >= table->capacity) return NULL;
     he4_map_t * map = HE4MALLOC(he4_map_t, 1);
     if (map == NULL) return NULL;
-    map->key = table->keys[index];
-    map->klen = table->klen[index];
-    map->entry = table->entries[index];
+    memcpy(map, &(table->maps[index]), sizeof(he4_map_t));
     return map;
 }
 
@@ -563,8 +602,8 @@ he4_rehash(HE4 * table, const size_t newsize) {
     }
     size_t capacity = newsize == 0 ? table->capacity * 2 : newsize;
     if (capacity <= table->capacity) {
-        DEBUG("New table capacity is too small.");
-        return NULL;
+        DEBUG("New table capacity is too small; nothing done.");
+        return table;
     }
 
     // Make the new table.
@@ -577,11 +616,53 @@ he4_rehash(HE4 * table, const size_t newsize) {
 
     // Move everything to the rehashed table.
     for (size_t index = 0; index < table->capacity; ++index) {
-        he4_map_t * map = he4_index(table, index);
-        he4_insert(table, map->key, map->klen, map->entry);
+        he4_insert(newtable, table->maps[index].key, table->maps[index].klen,
+                   table->maps[index].entry);
+        table->maps[index].key = NULL;
+        table->maps[index].entry = NULL;
+        table->maps[index].klen = 0;
     } // Rehash the table.
 
     // Free the original table.
     he4_delete(table);
     return newtable;
 }
+
+#ifndef HE4NOTOUCH
+HE4 *
+he4_trim_and_rehash(HE4 * table, const size_t newsize, const size_t trim_below) {
+    if (table == NULL) {
+        // We could treat this as an empty table, but this is almost certainly
+        // an error.
+        DEBUG("Attempt to rehash a NULL table.");
+        return NULL;
+    }
+    size_t capacity = newsize == 0 ? table->capacity * 2 : newsize;
+    if (capacity < table->capacity) {
+        DEBUG("New table capacity is too small; keeping old size.");
+        capacity = table->capacity;
+    }
+
+    // Make the new table.
+    HE4 * newtable = he4_new(capacity, table->hash, table->compare,
+                             table->delete_key, table->delete_entry);
+    if (newtable == NULL) {
+        DEBUG("Unable to get memory for rehashed table.");
+        return NULL;
+    }
+
+    // Move everything to the rehashed table.
+    for (size_t index = 0; index < table->capacity; ++index) {
+        if (table->maps[index].touch < trim_below) continue;
+        he4_insert(newtable, table->maps[index].key, table->maps[index].klen,
+                   table->maps[index].entry);
+        table->maps[index].key = NULL;
+        table->maps[index].entry = NULL;
+        table->maps[index].klen = 0;
+    } // Rehash the table.
+
+    // Free the original table.
+    he4_delete(table);
+    return newtable;
+}
+#endif // HE4NOTOUCH

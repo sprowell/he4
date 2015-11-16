@@ -58,6 +58,31 @@ if (he4_load(table) > 0.7) table = he4_rehash(table, 0);
 The second argument (`0`) uses the default new capacity, which is double the
 old capacity.
 
+## Least-Recently-Used
+
+By default the library adds a field to each entry called the *touch index*.
+The table has a stored maximum value.  Whenever an entry is found or inserted,
+its touch index is set to the table maximum and the maximum is then incremented.
+The item with the lowest touch index at any time is the least-recently-used
+item.
+
+You can use this when rehashing.  Set a threshold and rehash to the same size
+table.  The items whose touch index is below the threshold will be removed.
+See `he4_rehash_and_trim`.  The new table's touch index will be reset.
+
+This means you can use a "double buffer" kind of scheme, where you have enough
+space for two tables, and you flip back and forth between them to maintain a
+fixed amount of memory in use.
+
+This comes with a slight cost in time and space.  If you do not want this, then
+uncomment the appropriate line in `CMakeLists.txt`.
+
+```c
+// Delete old entries until the table is less than half full.
+while (he4_load(table) > 0.5)
+    table = he4_rehash_and_trim(table, table->capacity, table->max_touch / 4);
+```
+
 ## Include Files and Dependencies
 
 The library includes [Doug Lea's][dlmalloc] `malloc` implementation.  If you

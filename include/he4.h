@@ -64,10 +64,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifndef HE4_VERSION
-#error HE4_VERSION must be defined.
-#endif
-
 //======================================================================
 // Type handling.
 //======================================================================
@@ -175,9 +171,30 @@ extern int he4_debug;
 #define DEBUG(m_fmt, ...)
 #endif
 
+/**
+ * Obtain a string specifying the version number for the library.  He4 uses
+ * semantic versioning.
+ *
+ * @return              The version number, as a string.  Do not deallocate!
+ */
+char * he4_version();
+
 //======================================================================
 // Structure information.
 //======================================================================
+
+/**
+ * Structure used for a mapping in a hash table.
+ */
+typedef struct {
+    he4_key_t key;          ///< Key.
+    size_t klen;            ///< Length of key in bytes.
+    he4_entry_t entry;      ///< Data.
+    he4_hash_t hash;        ///< Hash of the key.
+#ifndef HE4NOTOUCH
+    size_t touch;           ///< The touch index.
+#endif // HE4NOTOUCH
+} he4_map_t;
 
 /**
  * Structure defining the hash table.
@@ -198,20 +215,9 @@ typedef struct {
 
     size_t capacity;        ///< Capacity of the table.
     size_t free;            ///< Number of free cells.
-    he4_key_t * keys;       ///< Keys, allocated at construction.
-    size_t * klen;          ///< Key lengths, allocated at construction.
-    he4_hash_t * hashes;    ///< Key hashes, allocated at construction.
-    he4_entry_t * entries;  ///< Entries, allocated at construction.
+    size_t max_touch;       ///< Maximum touch index.
+    he4_map_t * maps;       ///< The hash table.
 } HE4;
-
-/**
- * Structure used to return a mapping from a hash table.
- */
-typedef struct {
-    he4_key_t key;          ///< Key.
-    size_t klen;            ///< Length of key in bytes.
-    he4_entry_t entry;      ///< Data.
-} he4_map_t;
 
 //======================================================================
 // Table constructor.
@@ -319,6 +325,21 @@ size_t he4_capacity(HE4 * table);
  * @return              The load factor.
  */
 double he4_load(HE4 * table);
+
+#ifndef HE4NOTOUCH
+/**
+ * Get the highest touch index of an item in the table.
+ *
+ * Every time an item is successfully found - or when an item is inserted -
+ * the maximum touch index is incremented and then stored with the item.
+ * This can be used to clear out the least-recently-used items (see
+ * `he4_trim_and_rehash`).
+ *
+ * @param table         The table.
+ * @return              The maximum touch index.
+ */
+size_t he4_max_touch(HE4 * table);
+#endif // HE4NOTOUCH
 
 //======================================================================
 // Table insertion / deletion functions.
@@ -437,15 +458,34 @@ he4_map_t * he4_index(HE4 * table, const size_t index);
  * Rehash the table to one with the provided size.  This frees the original
  * table, so do not use it!
  *
- * If the provided size is not larger than the original size then `NULL` is
- * returned.  If the provided size is zero, then the new size will be double
- * the original size.
+ * If the provided size is not larger than the original size then the original
+ * table is returned.  If the provided size is zero, then the new size will be
+ * double the original size.
  *
  * @param table         The original table.
  * @param newsize       The new table size.
  * @return              The new table, or `NULL` if it cannot be created.
  */
 HE4 * he4_rehash(HE4 * table, const size_t newsize);
+
+#ifndef HE4NOTOUCH
+/**
+ * Rehash the table to one with the provided size.  This frees the original
+ * table, so do not use it!  This also trims old entries that have a touch
+ * index lower than the provided value.
+ *
+ * If the new size is smaller than the original size, then the original table
+ * is returned with no changes.
+ *
+ * @param table         The original table.
+ * @param newsize       The new table size.
+ * @param trim_below    Discard and free any entries with an touch index
+ *                      lower than this value.
+ * @return              The new table, or `NULL` if it cannot be created.
+ */
+HE4 * he4_trim_and_rehash(HE4 * table, const size_t newsize,
+                          const size_t trim_below);
+#endif
 
 // TODO Write an iterator.
 
