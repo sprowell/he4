@@ -22,6 +22,8 @@ table implementation in C99. The following are the design criteria.
    
 Why?  Well, embedded systems with fixed memory may need hash tables, too.
 
+This library uses [semantic versioning][semver], and is at version 1.0.0.
+
 ## Implementation
 
 This table implementation uses open addressing with linear probing (because
@@ -98,3 +100,4 @@ This is licensed under the two-clause "simplified" BSD license.  See the
 [dlmalloc]: http://g.oswego.edu
 [savezelda]: http://git.infradead.org/users/segher/savezelda.git/tree/HEAD:/loader
 [pagetable]: http://www.pagetable.com/?p=298
+[semver]: http://semver.org

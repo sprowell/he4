@@ -64,6 +64,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifndef HE4_VERSION
+#error HE4_VERSION must be defined.
+#endif
+
 //======================================================================
 // Type handling.
 //======================================================================
