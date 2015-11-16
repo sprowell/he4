@@ -82,7 +82,11 @@ main(int argc, char * argv[]) {
             buffer[len] = '\0';
         }
         int value = he4_get(table, buffer, len);
-        he4_insert(table, strdup(buffer), len, value+1);
+        // We have to use the user-defined malloc, so we can't just use strdup
+        // here.
+        char * clone = HE4MALLOC(char, len);
+        memcpy(clone, buffer, len);
+        he4_insert(table, clone, len, value+1);
         // This works because when an item is not found, NULL is returned, and
         // NULL is (essentially) zero.
 
