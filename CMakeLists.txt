@@ -1,6 +1,6 @@
 # Configuration to build Superfluid He-4.
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 2.8.7)
 project(he4)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_MACOSX_RPATH 1)
