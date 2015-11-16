@@ -4,13 +4,42 @@ cmake_minimum_required(VERSION 3.3)
 project(he4)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_MACOSX_RPATH 1)
+if (APPLE)
+    add_definitions(-DDARWIN)
+endif (APPLE)
+
+######################################################################
+##
+## User configuration section.
+##
+######################################################################
 
 # If you want to use Doug Lea's malloc, uncomment this.  You may get warnings,
 # as sbrk is deprecated on some platforms.  That's just the way it is.
 #set(HE4_DLMALLOC 1)
 
+# If you want to suppress the standard library, uncomment this line and define
+# your own malloc (or uncomment the line to use Doug Lea's).  This will also
+# suppress debugging.
+#set(NO_STD_LIB 1)
+
+######################################################################
+
+if (NO_STD_LIB)
+    message("Not including the standard library.")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdlib")
+    add_definitions(-DNODEBUG) # Prevents building debug lines.
+
+    # These suppress some dependencies in dlmalloc.
+    add_definitions(-DNO_MALLOC_STATS) # Suppresses some includes in dlmalloc.
+    add_definitions(-DLACKS_STDLIB_H) # Suppress standard library.
+    add_definitions(-DLACKS_STRING_H) # Suppress the string library.
+    add_definitions(-DLACKS_TIME_H) # Suppress the time library.
+    add_definitions(-DLACKS_UNISTD_H) # Suppress the unistd library.
+endif (NO_STD_LIB)
+
 include_directories(AFTER SYSTEM include)
-set(LIBRARY_FILES src/he4.c src/xxhash.c src/xxhsum.c)
+set(LIBRARY_FILES src/he4.c src/xxhash.c)
 if (HE4_DLMALLOC)
     message("Using Doug Lea's malloc.")
     set(LIBRARY_FILES ${LIBRARY_FILES} src/malloc.c)

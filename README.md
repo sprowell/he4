@@ -72,6 +72,22 @@ should not be hard to replace it if you need to.
 If you want debugging but can't tolerate `stdio.h`, have a look at
 [this library][savezelda], or at [this implementation][pagetable].
 
+## nostdlib
+
+Working on this.  For now you're stuck.  Right now you can uncomment
+`set(NO_STD_LIB 1)` in the `CMakeLists.txt` and compile, but you will have
+a few undefined symbols.  On my Mac I get a few undefined symbols.
+
+  * `___error`
+  * `___memcpy_chk`
+  * `_abort`
+  * `_memcmp`
+  * `_memcpy`
+  * `_memset`
+  * `_mmap`
+  * `_munmap`
+  * `_sysconf`
+
 ## License
 
 This is licensed under the two-clause "simplified" BSD license.  See the
