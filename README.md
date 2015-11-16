@@ -46,6 +46,35 @@ it cannot automagically rehash.  Paradoxically this is worse as the table
 becomes larger, because every search may have to go through the entire table to
 find an entry.
 
+## Basic Usage
+
+To use the library `#include <he4.h>` and then make use of the functions
+found therein.  If you are happy with your platform's `malloc` and are not
+constrained by library restrictions, then there is little else you need to
+think about (but do read the following two sections on handling full tables).
+
+A sample program that counts the entries in a file is in the `examples` folder.
+
+Create a table with `he4_new` and dispose of it when done with `he4_delete`.
+The table methods manage the deallocation of the keys and values.
+
+```c
+// Make a new table with the given size and the defaults.  The table
+// will map widgets to things.
+#define HE4_KEY_TYPE widget *
+#define HE4_ENTRY_TYPE thing *
+#include <he4.h>
+// ...
+HE4 * table = he4_new(size, NULL, NULL, NULL, NULL);
+// Use the table...
+he4_delete(table);
+```
+
+Insert items with `he4_insert` and remove them with `he4_remove` (to get the
+value back) or `he4_discard` (to let the library free it).
+
+Find an entry in the table with `he4_get`.
+
 ## Rehashing
 
 Of course you can *force* a rehash.  Code like the following is recommended,
