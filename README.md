@@ -24,7 +24,9 @@ table implementation in C99. The following are the design criteria.
    
 Why?  Well, embedded systems with fixed memory may need hash tables, too.
 
-This library uses [semantic versioning][semver], and is at version 1.0.0.
+This library uses [semantic versioning][semver].  The version number is set
+in the `CMakeLists.txt` file and can be obtained at runtime with the
+`he4_version` function.
 
 ## Implementation
 
