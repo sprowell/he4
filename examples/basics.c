@@ -22,7 +22,12 @@
 #include <time.h>
 #include <he4.h>
 
-#define INITIAL_TABLE_SIZE 64
+#define INITIAL_TABLE_SIZE 16384
+
+// Leave this in to allow the table to grow.  Comment it out to trim the least
+// recently used items from the table when it becomes full.  This will only
+// work if the library is compiled with touch enabled.
+#define EMBIGGEN
 
 /**
  * The function to "deallocate" an entry.  Entries are simple integers, so we
@@ -80,11 +85,23 @@ main(int argc, char * argv[]) {
         he4_insert(table, strdup(buffer), len, value+1);
         // This works because when an item is not found, NULL is returned, and
         // NULL is (essentially) zero.
+
+        // Handle the case of the table becoming too full.  There are two ways
+        // to deal with this.  We can let the table get larger, or we can trim
+        // the last-recently-used items.  Both are shown here.  Choose the one
+        // you want at compile time.
+#ifdef EMBIGGEN
+        // Grow the table.
         if (he4_load(table) > 0.7) {
-            fprintf(stdout, "Rehashing... ");
             table = he4_rehash(table, 0);
-            fprintf(stdout, "Table capacity is now %ld.\n", table->capacity);
         }
+#else
+        // Trim the table.
+        if (he4_load(table) > 0.7)
+            while (he4_load(table) > 0.3) {
+                table = he4_trim_and_rehash(table, table->capacity, table->max_touch / 2);
+            } // Trim least recently used.
+#endif // EMBIGGEN
     } // Process all lines.
 
     // Get the elapsed time.
@@ -102,6 +119,8 @@ main(int argc, char * argv[]) {
     } // Write all counts.
 
     // Tell the user how much time was taken.
+    fprintf(stdout, "Initial table capacity: %ld\n", (long)INITIAL_TABLE_SIZE);
+    fprintf(stdout, "Final table capacity: %ld\n", table->capacity);
     fprintf(stdout, "CPU Time Used: %f seconds\n", cpu_time_used);
 
     // Done.  Free the map.

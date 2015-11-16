@@ -68,7 +68,7 @@ item.
 
 You can use this when rehashing.  Set a threshold and rehash to the same size
 table.  The items whose touch index is below the threshold will be removed.
-See `he4_rehash_and_trim`.  The new table's touch index will be reset.
+See `he4_trim_and_rehash`.  The new table's touch index will be reset.
 
 This means you can use a "double buffer" kind of scheme, where you have enough
 space for two tables, and you flip back and forth between them to maintain a
@@ -80,7 +80,7 @@ uncomment the appropriate line in `CMakeLists.txt`.
 ```c
 // Delete old entries until the table is less than half full.
 while (he4_load(table) > 0.5)
-    table = he4_rehash_and_trim(table, table->capacity, table->max_touch / 4);
+    table = he4_trim_and_rehash(table, table->capacity, table->max_touch / 4);
 ```
 
 ## Include Files and Dependencies
