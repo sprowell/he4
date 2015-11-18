@@ -416,7 +416,7 @@ bool he4_discard(HE4 * table, const he4_key_t key, const size_t klen);
  * Find and return an entry with the specified key.
  *
  * If either the table or the key is equal to `NULL`, then nothing is done and
- * `true` is returned.
+ * `NULL` is returned.
  *
  * @param table         The hash table to search for the entry.
  * @param key           The key to locate.
@@ -427,6 +427,25 @@ he4_entry_t he4_get(HE4 * table, const he4_key_t key, const size_t klen);
 
 //======================================================================
 // Random access.
+//======================================================================
+
+/**
+ * Find and return a pointer to the entry with the specified key.  This is
+ * distinct from `he4_get` in that it allows the entry to be manipulated in
+ * the table directly.
+ *
+ * If either the table or the key is equal to `NULL`, then nothing is done and
+ * `NULL` is returned.
+ *
+ * @param table         The hash table to search for the entry.
+ * @param key           The key to locate.
+ * @param klen          Length in bytes of key.
+ * @return              The entry, or `NULL` if it was not found.
+ */
+he4_entry_t * he4_find(HE4 * table, const he4_key_t key, const size_t klen);
+
+//======================================================================
+// Direct access.
 //======================================================================
 
 /**

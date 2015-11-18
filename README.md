@@ -75,7 +75,11 @@ he4_delete(table);
 Insert items with `he4_insert` and remove them with `he4_remove` (to get the
 value back) or `he4_discard` (to let the library free it).
 
-Find an entry in the table with `he4_get`.
+Find an entry in the table with `he4_get`.  Alternately use `he4_find`, which
+returns a pointer to the item found in the table, as opposed to the item
+itself.  This allows modification of the item in place in the table, and can
+improve performance significantly by avoiding multiple searches.  See the
+example `basics.c`.
 
 ## Rehashing
 

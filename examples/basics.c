@@ -81,14 +81,21 @@ main(int argc, char * argv[]) {
             --len;
             buffer[len] = '\0';
         }
-        int value = he4_get(table, buffer, len);
-        // We have to use the user-defined malloc, so we can't just use strdup
-        // here.
-        char * clone = HE4MALLOC(char, len);
-        memcpy(clone, buffer, len);
-        he4_insert(table, clone, len, value+1);
-        // This works because when an item is not found, NULL is returned, and
-        // NULL is (essentially) zero.
+        // Locate the entry in the table, if it exists.  Note that if we used
+        // he4_get we would have to then do an he4_insert to update the value,
+        // which could require two searches of the table.  If the entry does
+        // not exist, then two searches will be required, still.  A "find or
+        // set" function would avoid this!
+        int * value = he4_find(table, buffer, len);
+        if (value == NULL) {
+            // The entry is not already present, so insert it.
+            char * clone = HE4MALLOC(char, len);
+            memcpy(clone, buffer, len);
+            he4_insert(table, clone, len, 1);
+        } else {
+            // The entry is in the table.  Increment it.
+            ++*value;
+        }
 
         // Handle the case of the table becoming too full.  There are two ways
         // to deal with this.  We can let the table get larger, or we can trim

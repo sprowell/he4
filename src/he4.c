@@ -576,6 +576,77 @@ he4_get(HE4 * table, const he4_key_t key, const size_t klen) {
 }
 
 //======================================================================
+// Direct access.
+//======================================================================
+
+he4_entry_t *
+he4_find(HE4 * table, const he4_key_t key, const size_t klen) {
+    // Check arguments.
+    if (table == NULL) {
+        DEBUG("Table is NULL.");
+        return NULL;
+    }
+    if (key == NULL) {
+        DEBUG("Key is NULL.");
+        return NULL;
+    }
+    if (klen == 0) {
+        DEBUG("Key length is 0.");
+        return NULL;
+    }
+
+    // Hash the key, then wrap to table size.
+    he4_hash_t hash = table->hash(key, klen);
+    size_t start = hash % table->capacity;
+    size_t index = start;
+
+    // Find the corresponding entry.  Stop if we wrap around, which can happen
+    // with a full table.
+    bool lazy = false;
+    size_t lazy_index = 0;
+    do {
+        // If we find an empty slot, stop.
+        if (is_empty(table, index)) return NULL;
+
+        // Keep track of the first deleted slot that is open.
+        if (!lazy && is_deleted(table, index)) {
+            // This is a lazy-deleted cell.
+            lazy = true;
+            lazy_index = index;
+        }
+
+        // Check the current slot.
+        if (table->maps[index].hash == hash &&
+            table->compare(key, klen, table->maps[index].key, table->maps[index].klen) == 0) {
+            // Found the entry.  If we have a lazy-deleted index, move it there.
+            he4_entry_t * entry = &table->maps[index].entry;
+            if (lazy) {
+                memcpy(&(table->maps[lazy_index]), &(table->maps[index]),
+                       sizeof(he4_map_t));
+                table->maps[index].key = NULL;
+                table->maps[index].entry = NULL;
+                table->maps[index].klen = 1;
+#ifndef HE4NOTOUCH
+                ++(table->max_touch);
+                table->maps[lazy_index].touch = table->max_touch;
+                entry = &table->maps[lazy_index].entry;
+            } else {
+                ++(table->max_touch);
+                table->maps[index].touch = table->max_touch;
+#endif // HE4NOTOUCH
+            }
+            return entry;
+        }
+
+        // Move to the next slot.
+        index = (index + 1) % table->capacity;
+    } while (start != index); // Find the entry.
+
+    // Not found.
+    return NULL;
+}
+
+//======================================================================
 // Random access.
 //======================================================================
 
