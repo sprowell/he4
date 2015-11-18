@@ -157,6 +157,11 @@ a few undefined symbols.  On my Mac I get a few undefined symbols.
 This is licensed under the two-clause "simplified" BSD license.  See the
 [LICENSE](LICENSE) file in the distribution.
 
+[xxHash][xxhash] is BSD licensed.  See the [LICENSE-xxHash](LICENSE-xxHash)
+file in the distribution.
+
+[Doug Lea's malloc][dlmalloc] is in the public domain. 
+
 
 [xxhash]: https://github.com/Cyan4973/xxHash
 [dlmalloc]: http://g.oswego.edu
