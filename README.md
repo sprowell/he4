@@ -1,8 +1,6 @@
 # he4
 Fast fixed-memory hash table.
 
-[![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4)
-
 ```
 |_| _ |_|
 | |(/_  |
