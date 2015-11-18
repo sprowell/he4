@@ -8,7 +8,7 @@ if (APPLE)
     add_definitions(-DDARWIN)
 endif (APPLE)
 
-add_definitions(-DHE4_VERSION="1.0.1")
+add_definitions(-DHE4_VERSION="1.0.2")
 
 ######################################################################
 ##
