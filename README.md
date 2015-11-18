@@ -9,6 +9,19 @@ Fast fixed-memory hash table.
 He4
 ```
 
+|Branch      |Status   |
+|------------|---------|
+|master      | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4?branch=master) |
+|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch==dev)](https://travis-ci.org/sprowell/he4?branch=dev) |
+
+**Branch Policy:**
+
+ - The "master" branch is intended to be stable at all times.
+ - The "dev" branch is the one where all contributions must be merged before
+   being promoted to master.
+    + If you plan to propose a patch, please commit into the "dev" branch or a
+      separate feature branch.  Direct commit to "master" will not be accepted.
+
 ## Overview
 
 The idea of this library is to create a fast in-memory hash
@@ -158,7 +171,7 @@ This is licensed under the two-clause "simplified" BSD license.  See the
 [LICENSE](LICENSE) file in the distribution.
 
 [xxHash][xxhash] is BSD licensed.  See the [LICENSE-xxHash](LICENSE-xxHash)
-file in the distribution.
+file in the distribution.  The **branch policy** was taken from xxHash.
 
 [Doug Lea's malloc][dlmalloc] is in the public domain. 
 
