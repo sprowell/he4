@@ -12,7 +12,7 @@ He4
 |Branch      |Status   |
 |------------|---------|
 |master      | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4?branch=master) |
-|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch==dev)](https://travis-ci.org/sprowell/he4?branch=dev) |
+|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=dev)](https://travis-ci.org/sprowell/he4) |
 
 **Branch Policy:**
 
