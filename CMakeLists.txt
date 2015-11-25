@@ -22,7 +22,7 @@ if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif (MSVC)
 
-add_definitions(-DHE4_VERSION="1.0.2")
+add_definitions(-DHE4_VERSION="1.0.3")
 
 ######################################################################
 ##
