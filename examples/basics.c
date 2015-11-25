@@ -47,10 +47,10 @@ free_entry(he4_entry_t entry) { /* Nothing to do. */ }
  */
 int
 main(int argc, char * argv[]) {
-    if (argc < 1) {
+    if (argc < 2) {
         fprintf(stdout, "Usage: %s [filename]\n", argv[0]);
         fprintf(stdout, "Read lines from the given file and then report the "
-                "number of times each line occurs.");
+                "number of times each line occurs.\n");
         return 0;
     }
 
