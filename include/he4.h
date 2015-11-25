@@ -107,7 +107,7 @@ extern "C" {
  * @param m_ptr       Pointer to the thing to deallocate.
  */
 #define HE4FREE(m_ptr) \
-        ((m_ptr == NULL) ? NULL : free(m_ptr), NULL)
+		{ if (m_ptr != NULL) free(m_ptr); }
 #endif // HE4FREE
 #endif // HE4_DLMALLOC
 

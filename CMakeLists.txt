@@ -1,12 +1,26 @@
 # Configuration to build Superfluid He-4.
+#
+# Build in release mode:
+# cmake -D CMAKE_BUILD_TYPE=Release ..
+#
+# Build in debug mode:
+# cmake -D CMAKE_BUILD_TYPE=Debug ..
 
 cmake_minimum_required(VERSION 2.8.7)
 project(he4)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+include(CheckCCompilerFlag)
+check_c_compiler_flag("-std=c99" HAS_C99_FLAG)
+if (HAS_C99_FLAG)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+endif (HAS_C99_FLAG)
 set(CMAKE_MACOSX_RPATH 1)
 if (APPLE)
     add_definitions(-DDARWIN)
 endif (APPLE)
+if (MSVC)
+	# Suppress warnings about fopen vs. fopen_s (C11).
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif (MSVC)
 
 add_definitions(-DHE4_VERSION="1.0.2")
 
