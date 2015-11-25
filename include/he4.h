@@ -215,7 +215,9 @@ typedef struct {
 
     size_t capacity;        ///< Capacity of the table.
     size_t free;            ///< Number of free cells.
+#ifndef HE4NOTOUCH
     size_t max_touch;       ///< Maximum touch index.
+#endif // HE4NOTOUCH
     he4_map_t * maps;       ///< The hash table.
 } HE4;
 
@@ -256,11 +258,13 @@ size_t he4_best_capacity(size_t bytes);
  *   * The `delete_key` function is given a pointer to a key and will
  *     deallocate it.  This is used when a key is discarded, overwritten, or
  *     when the entire table is deallocated.  If it is `NULL` then the default
- *     deallocator is used.
+ *     deallocator is used.  `NULL` is never passed as an argument to this
+ *     function, so checking is not necessary.
  *   * The `delete_entry` function is given a pointer to an entry and will
  *     deallocate it.  This is used when an entry is discarded, overwritten, or
  *     when the entire table is deallocated.  If it is `NULL` then the default
- *     deallocator is used.
+ *     deallocator is used.  `NULL` is never passed as an argumen to this
+ *     function, so checking is not necessary.
  *
  * If the number of entries is less than `HE4_MINIMUM_SIZE`, creation will fail.
  * If memory cannot be allocated, creation will fail.
@@ -364,7 +368,7 @@ bool he4_insert(HE4 * table, const he4_key_t key, const size_t klen,
 
 /**
  * Insert the given entry into the hash table.  If the table is full then the
- * first entry with the matching hash code is simply overwritten.
+ * least-recently-used item is overwritten.
  *
  * If either the table, key, or entry is equal to `NULL`, or if the key length
  * is 0, then nothing is done and `true` is returned.
@@ -477,9 +481,17 @@ he4_map_t * he4_index(HE4 * table, const size_t index);
  * Rehash the table to one with the provided size.  This frees the original
  * table, so do not use it!
  *
+ * If the new table cannot be created, then `NULL` is returned and the old
+ * table is not freed.
+ *
  * If the provided size is not larger than the original size then the original
  * table is returned.  If the provided size is zero, then the new size will be
  * double the original size.
+ *
+ * In summary: If the return value is not `NULL`, then use the return value
+ * and do not worry about the original table - it has either been freed or it
+ * was the returned table.  If the return value is `NULL`, then the original
+ * table was not freed.
  *
  * @param table         The original table.
  * @param newsize       The new table size.
@@ -489,24 +501,40 @@ HE4 * he4_rehash(HE4 * table, const size_t newsize);
 
 #ifndef HE4NOTOUCH
 /**
+ * Trim old entries from the table and compress deleted cells to improve search
+ * time.  This is done in place.
+ *
+ * @param table         The table.
+ * @param trim_below    Discard and free any entries with a touch index lower
+ *                      than this value.
+ */
+void he4_trim(HE4 * table, const size_t trim_below);
+
+/**
  * Rehash the table to one with the provided size.  This frees the original
  * table, so do not use it!  This also trims old entries that have a touch
  * index lower than the provided value.
  *
+ * If the new table cannot be created, then `NULL` is returned and the old
+ * table is not freed.
+ *
  * If the new size is smaller than the original size, then the original table
  * is returned with no changes.
  *
+ * In summary: If the return value is not `NULL`, then use the return value
+ * and do not worry about the original table - it has either been freed or it
+ * was the returned table.  If the return value is `NULL`, then the original
+ * table was not freed.
+ *
  * @param table         The original table.
  * @param newsize       The new table size.
- * @param trim_below    Discard and free any entries with an touch index
- *                      lower than this value.
+ * @param trim_below    Discard and free any entries with a touch index lower
+ *                      than this value.
  * @return              The new table, or `NULL` if it cannot be created.
  */
 HE4 * he4_trim_and_rehash(HE4 * table, const size_t newsize,
                           const size_t trim_below);
 #endif
-
-// TODO Write an iterator.
 
 #ifdef __cplusplus
 }

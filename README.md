@@ -149,14 +149,21 @@ example `basics.c`.
 ## Rehashing
 
 Of course you can *force* a rehash.  Code like the following is recommended,
-if you have memory to spare.
+if you have memory to spare.  Be aware that the rehash function returns `NULL`
+to signal that it cannot get memory for the new table.
 
 ```c
-if (he4_load(table) > 0.7) table = he4_rehash(table, 0);
+if (he4_load(table) > 0.7) {
+    HE4 * newtable = he4_rehash(table, 0);
+    table = newtable == NULL ? table : newtable;
+}
 ```
 
 The second argument (`0`) uses the default new capacity, which is double the
 old capacity.
+
+The original table is freed, but *only* if the new table is successfully
+constructed.  See the next section for how you might use this strategy.
 
 ## Least-Recently-Used
 
@@ -166,21 +173,24 @@ its touch index is set to the table maximum and the maximum is then incremented.
 The item with the lowest touch index at any time is the least-recently-used
 item.
 
-You can use this when rehashing.  Set a threshold and rehash to the same size
-table.  The items whose touch index is below the threshold will be removed.
-See `he4_trim_and_rehash`.  The new table's touch index will be reset.
+You can use this to clean up the table.  Set a threshold and trim the table by
+discarding everything with touch index below the threshold.  See
+`he4_trim`.  The new table's touch indices are debited by the threshold (so
+least-recently-used information is preserved).
 
-This means you can use a "double buffer" kind of scheme, where you have enough
-space for two tables, and you flip back and forth between them to maintain a
-fixed amount of memory in use.
+You can also use this when rehashing.  Set a threshold and rehash to the same
+size table.  The items with touch index below the threshold will be removed.
+See `he4_trim_and_rehash`.
 
-This comes with a slight cost in time and space.  If you do not want this, then
-uncomment the appropriate line in `CMakeLists.txt`.
+Maintaining the touch index comes with a slight cost in time and space.  If you
+do not want this, then uncomment the appropriate line in `CMakeLists.txt`.
 
 ```c
 // Delete old entries until the table is less than half full.
-while (he4_load(table) > 0.5)
-    table = he4_trim_and_rehash(table, table->capacity, table->max_touch / 4);
+while (he4_load(table) > 0.5) {
+    HE4 * newtable = he4_trim(table, table->max_touch / 4);
+    table = newtable == NULL ? table : newtable;
+}
 ```
 
 ## Include Files and Dependencies
