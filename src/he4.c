@@ -278,19 +278,19 @@ he4_insert(HE4 * table, const he4_key_t key, const size_t klen,
     // Check arguments.
     if (table == NULL) {
         DEBUG("Table is NULL.");
-        return NULL;
+        return true;
     }
     if (key == NULL) {
         DEBUG("Key is NULL.");
-        return NULL;
+        return true;
     }
     if (klen == 0) {
         DEBUG("Key length is NULL.");
-        return NULL;
+        return true;
     }
     if (entry == NULL) {
         DEBUG("Entry is NULL.");
-        return NULL;
+        return true;
     }
 
     // Hash the key, then wrap to table size.
