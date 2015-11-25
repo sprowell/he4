@@ -1,4 +1,10 @@
 # Configuration to build Superfluid He-4.
+#
+# Build in release mode:
+# cmake -D CMAKE_BUILD_TYPE=Release ..
+#
+# Build in debug mode:
+# cmake -D CMAKE_BUILD_TYPE=Debug ..
 
 cmake_minimum_required(VERSION 2.8.7)
 project(he4)
