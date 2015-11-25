@@ -41,6 +41,60 @@ This library uses [semantic versioning][semver].  The version number is set
 in the `CMakeLists.txt` file and can be obtained at runtime with the
 `he4_version` function.
 
+## Building
+
+This project is built with [CMake][cmake] and the API documentation is built
+with [Doxygen][doxygen].
+
+"Out of source" builds are supported by CMake, and to build
+the static and dynamic libraries for your platform, along with the API
+documentation, you can do the following from the project root folder.
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
+This populates `doc/api/html` with the API documentation, with all other
+build products in the `build` folder.
+
+To build the examples that come with this library, do the following from the
+`build` folder.
+
+```bash
+make examples
+```
+
+## CMake Generators
+
+To instead create an Eclipse project, a Ninja file, or something else, use
+a generator.  The command `cmake -h` will list the generators supported by your
+version of CMake.
+
+## Windows
+
+These instructions should work out of the box for Linux and OS X.
+
+You can get a Windows standalone SDK (for Windows 10 you can
+find it [here](https://dev.windows.com/en-US/downloads/windows-10-sdk)).
+
+Be sure to open Visual Studio and create at least one minimal C project so
+that any "on demand" components are installed.  Then do the following from
+the command prompt.
+
+```bash
+mkdir build
+cd build
+cmake ..
+```
+
+At this point you should have a `.sln` file you can open in Visual Studio.
+
+This builds just fine with Windows 10 and the Community Edition of Visual
+Studio.
+
 ## Implementation
 
 This table implementation uses open addressing with linear probing (because
@@ -181,3 +235,5 @@ file in the distribution.  The **branch policy** was taken from xxHash.
 [savezelda]: http://git.infradead.org/users/segher/savezelda.git/tree/HEAD:/loader
 [pagetable]: http://www.pagetable.com/?p=298
 [semver]: http://semver.org
+[cmake]: http://cmake.org
+[doxygen]: http://doxygen.org
