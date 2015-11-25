@@ -22,7 +22,7 @@
 #include <time.h>
 #include <he4.h>
 
-#define INITIAL_TABLE_SIZE 16384
+#define INITIAL_TABLE_SIZE 64
 
 // Leave this in to allow the table to grow.  Comment it out to trim the least
 // recently used items from the table when it becomes full.  This will only
@@ -90,6 +90,13 @@ main(int argc, char * argv[]) {
         if (value == NULL) {
             // The entry is not already present, so insert it.
             char * clone = HE4MALLOC(char, len);
+            if (clone == NULL) {
+                // Failed to get memory for a string, so we are dead in the
+                // water.  This is fatal.
+                he4_delete(table);
+                fprintf(stderr, "ERROR: Failed to get memory.\n");
+                return 1;
+            }
             memcpy(clone, buffer, len);
             he4_insert(table, clone, len, 1);
         } else {
