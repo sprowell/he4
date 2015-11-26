@@ -659,11 +659,14 @@ he4_find(HE4 * table, const he4_key_t key, const size_t klen) {
         // If we find an empty slot, stop.
         if (is_empty(table, index)) return NULL;
 
-        // Keep track of the first deleted slot that is open.
-        if (!lazy && is_deleted(table, index)) {
-            // This is a lazy-deleted cell.
-            lazy = true;
-            lazy_index = index;
+        // Pass over deleted cells.
+        if (is_deleted(table, index)) {
+            if (!lazy) {
+                // This is the first lazy-deleted cell encountered.
+                lazy = true;
+                lazy_index = index;
+            }
+            continue;
         }
 
         // Check the current slot.
@@ -676,11 +679,10 @@ he4_find(HE4 * table, const he4_key_t key, const size_t klen) {
         }
 
         // Found the entry.  If we have a lazy-deleted index, move it there.
-        he4_entry_t * entry = &table->maps[index].entry;
         if (lazy) {
             move_cell(table, index, lazy_index);
-            entry = &table->maps[lazy_index].entry;
             table->maps[index].klen = 1;
+            index = lazy_index;
 #ifndef HE4NOTOUCH
             ++(table->max_touch);
             table->maps[lazy_index].touch = table->max_touch;
@@ -689,7 +691,7 @@ he4_find(HE4 * table, const he4_key_t key, const size_t klen) {
             table->maps[index].touch = table->max_touch;
 #endif // HE4NOTOUCH
         }
-        return entry;
+        return &table->maps[index].entry;
     } while (start != index); // Find the entry.
 
     // Not found.
