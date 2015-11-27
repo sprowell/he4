@@ -7,3 +7,4 @@ install:
   - pip install --quiet coveralls
 after_success:
   - coveralls
+sudo: required
