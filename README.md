@@ -235,7 +235,11 @@ This is licensed under the two-clause "simplified" BSD license.  See the
 [xxHash][xxhash] is BSD licensed.  See the [LICENSE-xxHash](LICENSE-xxHash)
 file in the distribution.  The **branch policy** was taken from xxHash.
 
-[Doug Lea's malloc][dlmalloc] is in the public domain. 
+[Doug Lea's malloc][dlmalloc] is in the public domain.
+
+The Helium creep image used in the generated documentation is from
+[Wikipedia][superfluid].  They determine our reality, and the image is
+licensed under the [Creative Commons Attribution Share Alike 3.0 License][cc-by-sa-3]. 
 
 
 [xxhash]: https://github.com/Cyan4973/xxHash
@@ -245,3 +249,5 @@ file in the distribution.  The **branch policy** was taken from xxHash.
 [semver]: http://semver.org
 [cmake]: http://cmake.org
 [doxygen]: http://doxygen.org
+[superfluid]: https://en.wikipedia.org/wiki/Superfluidity#/media/File:Helium-II-creep.svg
+[cc-by-sa-3]: http://creativecommons.org/licenses/by-sa/3.0/

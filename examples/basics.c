@@ -22,7 +22,7 @@
 #include <time.h>
 #include <he4.h>
 
-#define INITIAL_TABLE_SIZE 64
+#define INITIAL_TABLE_SIZE 16384
 
 // Leave this in to allow the table to grow.  Comment it out to trim the least
 // recently used items from the table when it becomes full.  This will only
