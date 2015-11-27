@@ -307,7 +307,7 @@ he4_load(HE4 * table) {
 #ifndef HE4NOTOUCH
 size_t
 he4_max_touch(HE4 * table) {
-    return table->max_touch;
+    return table == NULL ? 0 : table->max_touch;
 }
 #endif // HE4NOTOUCH
 
@@ -492,18 +492,18 @@ he4_remove(HE4 * table, const he4_key_t key, const size_t klen) {
         if (is_empty(table, index)) return (he4_entry_t)NULL;
 
         // Skip deleted cells.
-        if (is_deleted(table, index)) continue;
-
-        // Check the current slot.
-        if (table->maps[index].hash == hash &&
+        if (! is_deleted(table, index)) {
+            // Check the current slot.
+            if (table->maps[index].hash == hash &&
                 table->compare(key, klen, table->maps[index].key,
                                table->maps[index].klen) == 0) {
-            // Found the entry.  Remove it and mark the cell as deleted.
-            he4_entry_t entry = table->maps[index].entry;
-            empty_cell(table, index, true, false);
-            table->maps[index].klen = 1;
-            ++(table->free);
-            return entry;
+                // Found the entry.  Remove it and mark the cell as deleted.
+                he4_entry_t entry = table->maps[index].entry;
+                empty_cell(table, index, true, false);
+                table->maps[index].klen = 1;
+                ++(table->free);
+                return entry;
+            }
         }
 
         // Move to the next slot.
@@ -511,6 +511,7 @@ he4_remove(HE4 * table, const he4_key_t key, const size_t klen) {
     } while (start != index); // Find and remove the entry.
 
     // Not found.
+    DEBUG("Exhausted.");
     return (he4_entry_t)NULL;
 }
 
@@ -542,16 +543,17 @@ he4_discard(HE4 * table, const he4_key_t key, const size_t klen) {
         if (is_empty(table, index)) return true;
 
         // Skip deleted cells.
-        if (is_deleted(table, index)) continue;
-
-        // Check the current slot.
-        if (table->maps[index].hash == hash &&
-                table->compare(key, klen, table->maps[index].key, table->maps[index].klen) == 0) {
-            // Found the entry.  Remove it, and mark the cell as deleted.
-            empty_cell(table, index, true, true);
-            table->maps[index].klen = 1;
-            ++(table->free);
-            return false;
+        if (! is_deleted(table, index)) {
+            // Check the current slot.
+            if (table->maps[index].hash == hash &&
+                table->compare(key, klen, table->maps[index].key,
+                               table->maps[index].klen) == 0) {
+                // Found the entry.  Remove it, and mark the cell as deleted.
+                empty_cell(table, index, true, true);
+                table->maps[index].klen = 1;
+                ++(table->free);
+                return false;
+            }
         }
 
         // Move to the next slot.
@@ -666,32 +668,30 @@ he4_find(HE4 * table, const he4_key_t key, const size_t klen) {
                 lazy = true;
                 lazy_index = index;
             }
-            continue;
-        }
-
-        // Check the current slot.
-        if (table->maps[index].hash != hash ||
+        } else {
+            // Check the current slot.
+            if (table->maps[index].hash != hash ||
                 table->compare(key, klen, table->maps[index].key,
                                table->maps[index].klen)) {
-            // Move to the next slot.
-            index = (index + 1) % table->capacity;
-            continue;
-        }
-
-        // Found the entry.  If we have a lazy-deleted index, move it there.
-        if (lazy) {
-            move_cell(table, index, lazy_index);
-            table->maps[index].klen = 1;
-            index = lazy_index;
+            } else {
+                // Found the entry.  If we have a lazy-deleted index, move it
+                // there.
+                if (lazy) {
+                    move_cell(table, index, lazy_index);
+                    table->maps[index].klen = 1;
+                    index = lazy_index;
 #ifndef HE4NOTOUCH
-            ++(table->max_touch);
-            table->maps[lazy_index].touch = table->max_touch;
-        } else {
-            ++(table->max_touch);
-            table->maps[index].touch = table->max_touch;
+                    ++(table->max_touch);
+                    table->maps[lazy_index].touch = table->max_touch;
+                } else {
+                    ++(table->max_touch);
+                    table->maps[index].touch = table->max_touch;
 #endif // HE4NOTOUCH
+                }
+                return &table->maps[index].entry;
+            }
         }
-        return &table->maps[index].entry;
+        index = (index + 1) % table->capacity;
     } while (start != index); // Find the entry.
 
     // Not found.

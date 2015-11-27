@@ -23,7 +23,7 @@ macro (SET_FLAGS_MAYBE)
         endif (HAS_FLAG)
     endforeach (ARG)
 endmacro (SET_FLAGS_MAYBE)
-SET_FLAGS_MAYBE("-Wall" "-std=c99" "-pedantic" "-march=native" "-mtune=native")
+SET_FLAGS_MAYBE("-Wall" "-std=c99" "-march=native" "-mtune=native")
 
 # Set some platform-specific definitions.
 if (APPLE)
