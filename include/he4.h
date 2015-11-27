@@ -339,6 +339,8 @@ double he4_load(HE4 * table);
  * This can be used to clear out the least-recently-used items (see
  * `he4_trim_and_rehash`).
  *
+ * If the table is `NULL`, then 0 is returned.
+ *
  * @param table         The table.
  * @return              The maximum touch index.
  */
