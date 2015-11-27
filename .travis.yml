@@ -4,7 +4,7 @@ compiler:
   - clang
   - gcc
 install:
-  - pip install --quiet coveralls
+  - sudo pip install --quiet coveralls
 after_success:
   - coveralls
 sudo: required
