@@ -1,8 +1,6 @@
 # he4
 Fast fixed-memory hash table.
 
-[![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4)
-
 ```
 |_| _ |_|
 | |(/_  |
@@ -12,7 +10,7 @@ He4
 |Branch      |Status   |
 |------------|---------|
 |master      | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4?branch=master) |
-|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=dev)](https://travis-ci.org/sprowell/he4) |
+|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=dev)](https://travis-ci.org/sprowell/he4) [![Coverage Status](https://coveralls.io/repos/sprowell/he4/badge.svg?branch=dev&service=github)](https://coveralls.io/github/sprowell/he4?branch=dev)|
 
 **Branch Policy:**
 
