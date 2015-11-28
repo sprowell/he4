@@ -7,7 +7,7 @@ install:
   - sudo pip install requests[security]
   - sudo pip install cpp-coveralls
 after_success:
-  - cpp-coveralls -e tests -e CMakeFiles -e examples
+  - cpp-coveralls --exclude CMakeFiles --exclude examples
 sudo: required
 #addons:
 #  apt:
