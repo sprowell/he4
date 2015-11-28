@@ -4,7 +4,8 @@ compiler:
   - clang
   - gcc
 install:
-  - sudo pip install --quiet cpp-coveralls
+  - sudo pip install requests[security]
+  - sudo pip install cpp-coveralls
 after_success:
   - cpp-coveralls
 sudo: required
