@@ -3,10 +3,10 @@ script: cmake . && make && make test
 compiler:
   - clang
   - gcc
-install:
-  - sudo pip install --quiet cpp-coveralls
+#install:
+#  - sudo pip install --quiet cpp-coveralls
 after_success:
-  - coveralls
+  - cpp-coveralls
 sudo: required
 addons:
   apt:
