@@ -24,7 +24,7 @@ macro (ADD_FLAGS_MAYBE VAR)
     endforeach (ARG)
 endmacro (ADD_FLAGS_MAYBE)
 ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-Wall" "-std=c99" "-march=native" "-mtune=native")
-ADD_FLAGS_MAYBE(CMAKE_C_FLAGS_DEBUG "-coverage")
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS_DEBUG "--coverage")
 
 # Set some platform-specific definitions.
 if (APPLE)
