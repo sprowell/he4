@@ -89,7 +89,7 @@
 /// is expected to have the structure of printf(...).
 #ifndef FPRINTF
 #  define FPRINTF(...) \
- 	fprintf(TEST_OUTPUT, ##__VA_ARGS__); \
+ 	fprintf(TEST_OUTPUT , ##__VA_ARGS__); \
  	fflush(TEST_OUTPUT);
 #endif
 
@@ -266,8 +266,8 @@ int main(int argc, char *argv[]) { \
  */
 #define FAIL_TEST(fmt_m, ...) \
 	tf_fail_test = true; \
-	WRITE("FAILED"); \
-	WRITELN(fmt_m, ##__VA_ARGS__); \
+    WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
+	WRITELN(fmt_m , ##__VA_ARGS__); \
 	goto end_test;
 
 /**
@@ -338,8 +338,8 @@ int main(int argc, char *argv[]) { \
 #define FAIL_ITEM(fmt_m, ...) \
 			tf_fail_test = true; \
 			tf_fail_item = true; \
-			WRITE("FAILED"); \
-			WRITELN(fmt_m, ##__VA_ARGS__); \
+			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
+			WRITELN(fmt_m , ##__VA_ARGS__); \
 			longjmp(buf, 1);
 
 /**
@@ -350,8 +350,8 @@ int main(int argc, char *argv[]) { \
 #define FAIL(fmt_m, ...) \
 	 		tf_fail_test = true; \
 	 		tf_fail_item = true; \
-	 		WRITE("FAILED"); \
-			WRITELN(fmt_m, ##__VA_ARGS__);
+			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
+			WRITELN(fmt_m , ##__VA_ARGS__);
 
 /**
  * End a test item.  Include this at the end of your test item code and
@@ -359,24 +359,11 @@ int main(int argc, char *argv[]) { \
  */
 #define END_ITEM \
  		} \
-		if (!tf_fail_item) { \
-			WRITELN("SUCCESS"); \
-		} \
 		IF_ENDL; \
 		tf_need_indent = false; \
 		TS("Ending item %s", item_name); \
 	} \
 	tf_item_enabled = true;
-
-/**
- * Validate a computed value against the actual (oracle) value.  If validation
- * fails, write a failure message.
- */
-#define VALIDATE(computed_m, actual_m) \
-		if (strcmp((computed_m), (actual_m))) { \
-			FAIL("mismtach (%s != %s)", \
-				(computed_m), (actual_m)); \
-	    }
 
 /**
  * Assert that a given predicate is "true."  If validation fails, write a
@@ -385,6 +372,15 @@ int main(int argc, char *argv[]) { \
 #define ASSERT(pred_m) \
 		if (!(pred_m)) { \
             FAIL("assertion: " #pred_m); \
+        }
+
+/**
+ * Require that a predicate be true for the test to proceed.  If the predicate
+ * is false, fail the test.
+ */
+#define REQUIRE(pred_m) \
+        if (!(pred_m)) { \
+            FAIL_TEST("requirement not met: " #pred_m); \
         }
 
 #endif /*TEST_FRAME_H_*/
