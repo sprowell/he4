@@ -15,7 +15,6 @@
 
 #include <string.h>
 #include <he4.h>
-#include <zconf.h>
 #include "xxhash.h"
 
 // Make sure the version is defined.  If not, then given an error.
