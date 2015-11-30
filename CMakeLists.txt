@@ -33,6 +33,8 @@ endif (APPLE)
 if (MSVC)
 	# Suppress warnings about fopen vs. fopen_s (C11).
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	# Windows does not support fork in the usual Posix way.
+	add_definitions(-DNOFORK)
 endif (MSVC)
 
 ######################################################################
