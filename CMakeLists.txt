@@ -15,15 +15,16 @@ add_definitions(-DHE4_VERSION="1.0.4")
 
 # Check and populate compiler flags.
 include(CheckCCompilerFlag)
-macro (SET_FLAGS_MAYBE)
-    foreach (ARG ${ARGV})
+macro (ADD_FLAGS_MAYBE VAR)
+    foreach (ARG ${ARGN})
         check_c_compiler_flag(${ARG} HAS_FLAG)
         if (HAS_FLAG)
-            set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARG}")
+            set (${VAR} "${${VAR}} ${ARG}")
         endif (HAS_FLAG)
     endforeach (ARG)
-endmacro (SET_FLAGS_MAYBE)
-SET_FLAGS_MAYBE("-Wall" "-std=c99" "-march=native" "-mtune=native")
+endmacro (ADD_FLAGS_MAYBE)
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-Wall" "-std=c99" "-march=native" "-mtune=native")
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS_DEBUG "--coverage")
 
 # Set some platform-specific definitions.
 if (APPLE)
@@ -32,6 +33,8 @@ endif (APPLE)
 if (MSVC)
 	# Suppress warnings about fopen vs. fopen_s (C11).
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	# Windows does not support fork in the usual Posix way.
+	add_definitions(-DNOFORK)
 endif (MSVC)
 
 ######################################################################

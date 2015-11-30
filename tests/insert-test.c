@@ -20,13 +20,16 @@
 #include <he4.h>
 
 he4_hash_t hash(he4_key_t key, size_t klen) {
+    (void)klen;
     return (he4_hash_t)key;
 }
 int compare(he4_key_t key1, size_t klen1, he4_key_t key2, size_t klen2) {
+    (void)klen1;
+    (void)klen2;
     return (key1 == key2 ? 0 : 1);
 }
-void delete_key(he4_key_t key) {}
-void delete_entry(he4_entry_t entry) {}
+void delete_key(he4_key_t key) { (void)key; }
+void delete_entry(he4_entry_t entry) { (void)entry; }
 
 START_TEST
 

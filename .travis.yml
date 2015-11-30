@@ -1,5 +1,15 @@
 language: c
-script: cmake . && make && make test
+script: cmake . -DCMAKE_BUILD_TYPE=Debug && make VERBOSE=1 && make test
 compiler:
   - clang
   - gcc
+install:
+  - sudo pip install requests[security]
+  - sudo pip install cpp-coveralls
+after_success:
+  - cpp-coveralls --exclude CMakeFiles --exclude examples
+sudo: required
+#addons:
+#  apt:
+#    packages:
+#      - cpp-coveralls

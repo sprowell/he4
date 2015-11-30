@@ -55,7 +55,7 @@ static he4_map_t blank_cell = {
 int he4_debug = 0;
 
 char *
-he4_version() {
+he4_version(void) {
     return HE4_VERSION;
 }
 
