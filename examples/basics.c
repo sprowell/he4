@@ -36,7 +36,7 @@
  * @param entry         The entry to deallocate.
  */
 static void
-free_entry(he4_entry_t entry) { /* Nothing to do. */ }
+free_entry(he4_entry_t entry) { (void)entry; }
 
 /**
  * Entry point from the command line.
@@ -130,7 +130,7 @@ main(int argc, char * argv[]) {
     for (size_t index = 0; index < table->capacity; ++index) {
         he4_map_t * map = he4_index(table, index);
         if (map != NULL && map->key != NULL) {
-            fprintf(stdout, "%4zu: \"%s\"(%ld) -> %d\n", index, map->key,
+            fprintf(stdout, "%4zu: \"%s\"(%zu) -> %d\n", index, map->key,
                     map->klen, map->entry);
         }
         HE4FREE(map);
@@ -138,7 +138,7 @@ main(int argc, char * argv[]) {
 
     // Tell the user how much time was taken.
     fprintf(stdout, "Initial table capacity: %ld\n", (long)INITIAL_TABLE_SIZE);
-    fprintf(stdout, "Final table capacity: %ld\n", table->capacity);
+    fprintf(stdout, "Final table capacity: %zu\n", table->capacity);
     fprintf(stdout, "CPU Time Used: %f seconds\n", cpu_time_used);
 
     // Done.  Free the map.
