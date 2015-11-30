@@ -15,7 +15,7 @@
 
 #include <string.h>
 #include <he4.h>
-#include <zconf.h>
+#include <stdbool.h>
 #include "xxhash.h"
 
 // Make sure the version is defined.  If not, then given an error.
@@ -55,7 +55,7 @@ static he4_map_t blank_cell = {
 int he4_debug = 0;
 
 char *
-he4_version() {
+he4_version(void) {
     return HE4_VERSION;
 }
 

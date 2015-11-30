@@ -177,7 +177,7 @@ extern int he4_debug;
  *
  * @return              The version number, as a string.  Do not deallocate!
  */
-char * he4_version();
+char * he4_version(void);
 
 //======================================================================
 // Structure information.
