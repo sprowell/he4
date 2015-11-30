@@ -36,7 +36,7 @@
  * @param entry         The entry to deallocate.
  */
 static void
-free_entry(he4_entry_t entry) { /* Nothing to do. */ }
+free_entry(he4_entry_t entry) { (void)entry; }
 
 /**
  * Entry point from the command line.
