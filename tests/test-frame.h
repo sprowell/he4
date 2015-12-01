@@ -230,7 +230,8 @@
 		CDC__(status); \
 	} else {
 #  define POSTFLIGHT \
-	}
+	} \
+    return tf_retval;
 #else
 #  define PREFLIGHT
 #  define POSTFLIGHT
@@ -246,6 +247,7 @@
 #define START_TEST \
 static jmp_buf buf; \
 int main(int argc, char *argv[]) { \
+    (void)argc; (void)argv; \
 	bool tf_need_space = false, tf_need_endl = false, tf_need_indent = false; \
 	int tf_retval = 0; \
 	int tf_item_enabled = true; \
@@ -308,7 +310,6 @@ int main(int argc, char *argv[]) { \
 		tf_retval = 0; \
 		return EXIT_SUCCESS; \
 	POSTFLIGHT; \
-	return tf_retval; \
 }
 
 /**
