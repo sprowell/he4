@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) { \
 	int tf_retval = 0; \
 	int tf_item_enabled = true; \
 	bool tf_fail_test = false; \
-	srand(time(0)); \
+	srand((unsigned int)time(0)); \
 	TS("Starting test"); \
 	PREFLIGHT; \
 
