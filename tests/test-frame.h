@@ -325,7 +325,6 @@ int main(int argc, char *argv[]) { \
  */
 #define START_ITEM(item_name_m) \
 	if (tf_item_enabled) { \
-		bool tf_fail_item = false; \
 		tf_need_space = false; \
 		char * item_name = STRINGIFY(item_name_m); \
 		TS("Starting item %s", item_name); \
@@ -341,7 +340,6 @@ int main(int argc, char *argv[]) { \
  */
 #define FAIL_ITEM(...) \
 			tf_fail_test = true; \
-			tf_fail_item = true; \
 			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
 			WRITELN(__VA_ARGS__); \
 			longjmp(buf, 1);
@@ -354,7 +352,6 @@ int main(int argc, char *argv[]) { \
  */
 #define FAIL(...) \
 	 		tf_fail_test = true; \
-	 		tf_fail_item = true; \
 			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
 			WRITELN(__VA_ARGS__);
 
