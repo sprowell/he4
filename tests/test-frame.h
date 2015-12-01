@@ -230,7 +230,8 @@
 		CDC__(status); \
 	} else {
 #  define POSTFLIGHT \
-	}
+	} \
+    return tf_retval;
 #else
 #  define PREFLIGHT
 #  define POSTFLIGHT
@@ -246,11 +247,12 @@
 #define START_TEST \
 static jmp_buf buf; \
 int main(int argc, char *argv[]) { \
+    (void)argc; (void)argv; \
 	bool tf_need_space = false, tf_need_endl = false, tf_need_indent = false; \
 	int tf_retval = 0; \
 	int tf_item_enabled = true; \
 	bool tf_fail_test = false; \
-	srand(time(0)); \
+	srand((unsigned int)time(0)); \
 	TS("Starting test"); \
 	PREFLIGHT; \
 
@@ -308,7 +310,6 @@ int main(int argc, char *argv[]) { \
 		tf_retval = 0; \
 		return EXIT_SUCCESS; \
 	POSTFLIGHT; \
-	return tf_retval; \
 }
 
 /**
@@ -324,7 +325,6 @@ int main(int argc, char *argv[]) { \
  */
 #define START_ITEM(item_name_m) \
 	if (tf_item_enabled) { \
-		bool tf_fail_item = false; \
 		tf_need_space = false; \
 		char * item_name = STRINGIFY(item_name_m); \
 		TS("Starting item %s", item_name); \
@@ -340,7 +340,6 @@ int main(int argc, char *argv[]) { \
  */
 #define FAIL_ITEM(...) \
 			tf_fail_test = true; \
-			tf_fail_item = true; \
 			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
 			WRITELN(__VA_ARGS__); \
 			longjmp(buf, 1);
@@ -353,7 +352,6 @@ int main(int argc, char *argv[]) { \
  */
 #define FAIL(...) \
 	 		tf_fail_test = true; \
-	 		tf_fail_item = true; \
 			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
 			WRITELN(__VA_ARGS__);
 

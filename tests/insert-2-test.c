@@ -157,6 +157,9 @@ START_ITEM(cleanup)
         // We have to duplicate the entry, in case remove fails and deallocates
         // it.  We must deallocate both later.
         he4_entry_t entry = strdup(pentry->entry);
+        if (entry == NULL) {
+            FAIL_ITEM("unable to get memory for a string");
+        }
         he4_entry_t rval = he4_remove(table, pentry->key, pentry->klen);
         if (strcmp(entry, rval) != 0) {
             free(entry);

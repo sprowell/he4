@@ -112,6 +112,9 @@ extern "C" {
 #endif // HE4_DLMALLOC
 
 #ifndef HE4_ENTRY_TYPE
+/**
+ * The type for an entry in the table.  This is typically a pointer.
+ */
 #  define HE4_ENTRY_TYPE void *
 #endif
 /**
@@ -122,6 +125,9 @@ extern "C" {
 typedef HE4_ENTRY_TYPE he4_entry_t;
 
 #ifndef HE4_KEY_TYPE
+/**
+ * The type for a key in the table.  This is typically a pointer.
+ */
 #  define HE4_KEY_TYPE void *
 #endif
 /**
@@ -132,8 +138,12 @@ typedef HE4_ENTRY_TYPE he4_entry_t;
 typedef HE4_KEY_TYPE he4_key_t;
 
 #ifndef HE4_HASH_TYPE
+/**
+ * The type returned by the hash function.
+ */
 #  define HE4_HASH_TYPE uint32_t
 #else
+/** Signal the use of a user-defined hash. */
 #  define HE4_USER_HASH
 #endif
 /**
