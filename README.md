@@ -10,7 +10,7 @@ He4
 |Branch      |Status   |
 |------------|---------|
 |master      | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4?branch=master) |
-|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=dev)](https://travis-ci.org/sprowell/he4) |
+|dev         | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=dev)](https://travis-ci.org/sprowell/he4) [![Coverage Status](https://coveralls.io/repos/sprowell/he4/badge.svg?branch=dev&service=github)](https://coveralls.io/github/sprowell/he4?branch=dev)|
 
 **Branch Policy:**
 
@@ -64,6 +64,11 @@ To build the examples that come with this library, do the following from the
 ```bash
 make examples
 ```
+
+The `count` example counts the occurrences of lines in a file and write the
+result.  It provides an example of a table that maps `char *` keys to concrete
+values (that is, values that are not pointers).  An example input file
+`wordlist.txt` is provided.
 
 ## CMake Generators
 
