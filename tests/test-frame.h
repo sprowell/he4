@@ -86,10 +86,11 @@
 
 /// What function we call to write.  You can override this (if you must) by
 /// #define-ing this before you #include the file.  Whatever you use here
-/// is expected to have the structure of printf(...).
+/// is expected to have the structure of printf(...).  You must include the
+/// format string.
 #ifndef FPRINTF
 #  define FPRINTF(...) \
- 	fprintf(TEST_OUTPUT , ##__VA_ARGS__); \
+ 	fprintf(TEST_OUTPUT , __VA_ARGS__); \
  	fflush(TEST_OUTPUT);
 #endif
 
@@ -262,12 +263,13 @@ int main(int argc, char *argv[]) { \
 	WRITELN("SUCCESS");
 
 /**
- * Abort and fail the entire test.  The test is immediately stopped.
+ * Abort and fail the entire test.  The test is immediately stopped.  You
+ * must include the format string (the arguments are similar to `printf`.)
  */
-#define FAIL_TEST(fmt_m, ...) \
+#define FAIL_TEST(...) \
 	tf_fail_test = true; \
     WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
-	WRITELN(fmt_m , ##__VA_ARGS__); \
+	WRITELN(__VA_ARGS__); \
 	goto end_test;
 
 /**
@@ -333,25 +335,27 @@ int main(int argc, char *argv[]) { \
 
 /**
  * Fail the current test item.  This allows testing to proceed to the next
- * test item, if any, provided it is not disabled.
+ * test item, if any, provided it is not disabled.  You must include the
+ * format string (the arguments are similar to `printf`).
  */
-#define FAIL_ITEM(fmt_m, ...) \
+#define FAIL_ITEM(...) \
 			tf_fail_test = true; \
 			tf_fail_item = true; \
 			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
-			WRITELN(fmt_m , ##__VA_ARGS__); \
+			WRITELN(__VA_ARGS__); \
 			longjmp(buf, 1);
 
 /**
  * Fail the current test item, but continue with the item.  This allows
  * reporting failure for long lists of checks without forcing the checks
- * to be stopped.
+ * to be stopped.  You must include the format string (the arguments are
+ * similar to `printf`).
  */
-#define FAIL(fmt_m, ...) \
+#define FAIL(...) \
 	 		tf_fail_test = true; \
 	 		tf_fail_item = true; \
 			WRITE("FAILED at %s:%d", __FILE__, __LINE__); \
-			WRITELN(fmt_m , ##__VA_ARGS__);
+			WRITELN(__VA_ARGS__);
 
 /**
  * End a test item.  Include this at the end of your test item code and
