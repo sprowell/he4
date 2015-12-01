@@ -65,6 +65,11 @@ To build the examples that come with this library, do the following from the
 make examples
 ```
 
+The `count` example counts the occurrences of lines in a file and write the
+result.  It provides an example of a table that maps `char *` keys to concrete
+values (that is, values that are not pointers).  An example input file
+`wordlist.txt` is provided.
+
 ## CMake Generators
 
 To instead create an Eclipse project, a Ninja file, or something else, use
