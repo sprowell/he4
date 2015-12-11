@@ -7,7 +7,7 @@ Fast fixed-memory hash table.
 He4
 ```
 
-[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg)](https://github.com/sprowell/he4/releases)
+[![He4 release](https://img.shields.io/badge/release-latest-lightgrey.svg)](https://github.com/sprowell/he4/releases)
 
 |Branch      |Status   |
 |------------|---------|
