@@ -47,7 +47,10 @@ You may **contribute** to this project by submitting issues or feature requests,
 forking the project and submitting pull requests, and by contributing to the
 meagre documentation.  All help is welcome!
 
-No specific style guid is adopted for this project.  The closest is
+Please report vulnerabilities on the
+[https://github.com/sprowell/he4/issues](issue tracker) with highest priority.
+
+No specific style guide is adopted for this project.  The closest is
 [c-style][this guide].
 
 
