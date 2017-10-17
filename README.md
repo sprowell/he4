@@ -43,6 +43,10 @@ This library uses [semantic versioning][semver].  The version number is set
 in the `CMakeLists.txt` file and can be obtained at runtime with the
 `he4_version` function.
 
+You may **contribute** to this project by submitting issues or feature requests,
+forking the project and submitting pull requests, and by contributing to the
+meagre documentation.  All help is welcome!
+
 ## Building
 
 This project is built with [CMake][cmake] and the API documentation is built
