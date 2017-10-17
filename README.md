@@ -47,6 +47,10 @@ You may **contribute** to this project by submitting issues or feature requests,
 forking the project and submitting pull requests, and by contributing to the
 meagre documentation.  All help is welcome!
 
+No specific style guid is adopted for this project.  The closest is
+[c-style][this guide].
+
+
 ## Building
 
 This project is built with [CMake][cmake] and the API documentation is built
@@ -264,3 +268,5 @@ licensed under the [Creative Commons Attribution Share Alike 3.0 License][cc-by-
 [doxygen]: http://doxygen.org
 [superfluid]: https://en.wikipedia.org/wiki/Superfluidity#/media/File:Helium-II-creep.svg
 [cc-by-sa-3]: http://creativecommons.org/licenses/by-sa/3.0/
+[c-style]: https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html
+
