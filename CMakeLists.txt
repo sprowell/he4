@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 2.8.7)
 set(CMAKE_MACOSX_RPATH 1)
 
-# Projece name and version.
+# Project name and version.
 project(he4)
 add_definitions(-DHE4_VERSION="1.0.4")
 
