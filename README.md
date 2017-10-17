@@ -9,6 +9,8 @@ He4
 
 [![He4 release](https://img.shields.io/badge/release-latest-lightgrey.svg)](https://github.com/sprowell/he4/releases)
 
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/453/badge)](https://bestpractices.coreinfrastructure.org/projects/453)
+
 |Branch      |Status   |
 |------------|---------|
 |master      | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4?branch=master) |
