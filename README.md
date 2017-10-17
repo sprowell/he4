@@ -7,6 +7,10 @@ Fast fixed-memory hash table.
 He4
 ```
 
+[![He4 release](https://img.shields.io/badge/release-latest-lightgrey.svg)](https://github.com/sprowell/he4/releases)
+
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/453/badge)](https://bestpractices.coreinfrastructure.org/projects/453)
+
 |Branch      |Status   |
 |------------|---------|
 |master      | [![Build Status](https://travis-ci.org/sprowell/he4.svg?branch=master)](https://travis-ci.org/sprowell/he4?branch=master) |
@@ -38,6 +42,17 @@ Why?  Well, embedded systems with fixed memory may need hash tables, too.
 This library uses [semantic versioning][semver].  The version number is set
 in the `CMakeLists.txt` file and can be obtained at runtime with the
 `he4_version` function.
+
+You may **contribute** to this project by submitting issues or feature requests,
+forking the project and submitting pull requests, and by contributing to the
+meagre documentation.  All help is welcome!
+
+Please report vulnerabilities on the
+[issue tracker](https://github.com/sprowell/he4/issues) with highest priority.
+
+No specific style guide is adopted for this project.  The closest is
+[this guide][c-style].
+
 
 ## Building
 
@@ -256,3 +271,5 @@ licensed under the [Creative Commons Attribution Share Alike 3.0 License][cc-by-
 [doxygen]: http://doxygen.org
 [superfluid]: https://en.wikipedia.org/wiki/Superfluidity#/media/File:Helium-II-creep.svg
 [cc-by-sa-3]: http://creativecommons.org/licenses/by-sa/3.0/
+[c-style]: https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html
+
