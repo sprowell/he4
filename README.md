@@ -48,10 +48,10 @@ forking the project and submitting pull requests, and by contributing to the
 meagre documentation.  All help is welcome!
 
 Please report vulnerabilities on the
-[https://github.com/sprowell/he4/issues](issue tracker) with highest priority.
+[issue tracker](https://github.com/sprowell/he4/issues) with highest priority.
 
 No specific style guide is adopted for this project.  The closest is
-[c-style][this guide].
+[this guide][c-style].
 
 
 ## Building
