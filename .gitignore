@@ -33,3 +33,4 @@
 .idea
 doc/api
 build
+Doxyfile.in.bak
