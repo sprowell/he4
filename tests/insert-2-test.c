@@ -17,7 +17,12 @@
 #define HE4_ENTRY_TYPE char *
 
 #include "test-frame.h"
+#include <string.h>
 #include <he4.h>
+
+#ifndef strdup
+char* strdup(const char*);
+#endif
 
 char * words[] = {
         // Each row is ten words.
@@ -93,9 +98,10 @@ START_ITEM(verify_full)
         // deallocated.
         he4_entry_t * pentry = he4_find(table, key, strlen(key));
         if (pentry == NULL) {
+            FAIL("missing entry for key: %s", key);
             free(key);
             free(entry);
-            FAIL_TEST("missing entry for key: %s", key);
+	        IF_FAIL_END_ITEM;
         }
         ASSERT(strcmp(*pentry, entry) == 0);
         he4_entry_t entry2 = he4_get(table, key, strlen(key));
@@ -114,7 +120,10 @@ START_ITEM(insert)
         he4_entry_t entry = num_to_word(index +7);
         if (!he4_insert(table, key, strlen(key), entry)) {
             // Do not deallocate, since this made it into the table.
-            FAIL_ITEM("inserted at index: %zu", index);
+            FAIL("inserted at index: %zu", index);
+            free(key);
+            free(entry);
+	        IF_FAIL_END_ITEM;
         }
         free(key);
         free(entry);
@@ -133,9 +142,10 @@ START_ITEM(force)
         he4_entry_t entry = (he4_entry_t) num_to_word(index + 7);
         if (!he4_force_insert(table, key, strlen(key), entry)) {
             // Since these did not go in the table, deallocate them.
+            FAIL("insertion at index: %zu", index);
             free(key);
             free(entry);
-            FAIL_ITEM("insertion at index: %zu", index);
+	        IF_FAIL_END_ITEM;
         }
         he4_entry_t entry2 = he4_get(table, key, strlen(key));
         if (strcmp(entry2, entry) != 0) {
@@ -162,9 +172,10 @@ START_ITEM(cleanup)
         }
         he4_entry_t rval = he4_remove(table, pentry->key, pentry->klen);
         if (strcmp(entry, rval) != 0) {
+            FAIL("removed entry is incorrect: %s != %s", rval, entry);
             free(entry);
             free(rval);
-            FAIL_ITEM("removed entry is incorrect: %s != %s", rval, entry);
+            IF_FAIL_END_ITEM;
         }
         free(entry);
         free(rval);
