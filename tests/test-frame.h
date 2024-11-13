@@ -284,6 +284,15 @@ int main(int argc, char *argv[]) { \
 	}
 
 /**
+ * If failure was detected in a prior step, end the current item now.  That is,
+ * if a prior step contained a FAIL call, then stop the current item, but not
+ * the entire test.
+ */
+#define IF_FAIL_END_ITEM \
+			tf_fail_test = true; \
+			longjmp(buf, 1);
+
+/**
  * Execute a block of actions if failure has been detected.
  */
 #define IF_FAIL \
