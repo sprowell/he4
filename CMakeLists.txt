@@ -26,8 +26,9 @@ macro (ADD_FLAGS_MAYBE VAR)
     endforeach (ARG)
     message("${VAR} is ${${VAR}}")
 endmacro (ADD_FLAGS_MAYBE)
-ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-Wall" "--std=c99" "--pedantic" "-march=native" "-mtune=native")
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-Wall" "-O2" "--std=c99" "--pedantic" "-march=native" "-mtune=native" "-Wl,-z,relro,-z,now")
 ADD_FLAGS_MAYBE(CMAKE_C_FLAGS_DEBUG "-coverage")
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-D_FORTIFY_SOURCE=3")
 
 # Set some platform-specific definitions.
 if (APPLE)
