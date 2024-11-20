@@ -263,7 +263,7 @@ licensed under the [Creative Commons Attribution Share Alike 3.0 License][cc-by-
 
 
 [xxhash]: https://github.com/Cyan4973/xxHash
-[dlmalloc]: http://g.oswego.edu
+[dlmalloc]: https://github.com/sailfish009/malloc
 [savezelda]: http://git.infradead.org/users/segher/savezelda.git/tree/HEAD:/loader
 [pagetable]: http://www.pagetable.com/?p=298
 [semver]: http://semver.org

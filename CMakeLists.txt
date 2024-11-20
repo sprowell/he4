@@ -6,12 +6,12 @@
 # Build in debug mode:
 # cmake -D CMAKE_BUILD_TYPE=Debug ..
 
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 
 # Project name and version.
 project(he4)
-add_definitions(-DHE4_VERSION="1.0.4")
+add_definitions(-DHE4_VERSION="1.0.8")
 
 # Check and populate compiler flags.
 include(CheckCCompilerFlag)
