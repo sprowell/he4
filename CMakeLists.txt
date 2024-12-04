@@ -6,12 +6,12 @@
 # Build in debug mode:
 # cmake -D CMAKE_BUILD_TYPE=Debug ..
 
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 
 # Project name and version.
 project(he4)
-add_definitions(-DHE4_VERSION="1.0.4")
+add_definitions(-DHE4_VERSION="1.0.8")
 
 # Check and populate compiler flags.
 include(CheckCCompilerFlag)
@@ -26,8 +26,9 @@ macro (ADD_FLAGS_MAYBE VAR)
     endforeach (ARG)
     message("${VAR} is ${${VAR}}")
 endmacro (ADD_FLAGS_MAYBE)
-ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-Wall" "--std=c99" "--pedantic" "-march=native" "-mtune=native")
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-Wall" "-O2" "--std=c99" "--pedantic" "-march=native" "-mtune=native" "-Wl,-z,relro,-z,now")
 ADD_FLAGS_MAYBE(CMAKE_C_FLAGS_DEBUG "-coverage")
+ADD_FLAGS_MAYBE(CMAKE_C_FLAGS "-D_FORTIFY_SOURCE=3")
 
 # Set some platform-specific definitions.
 if (APPLE)
