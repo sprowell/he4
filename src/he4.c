@@ -264,11 +264,11 @@ he4_delete(HE4 * table) {
     }
 
     // Delete any remaining entries.
-    table->free = 0;
-    table->capacity = 0;
     for (size_t index = 0; index < table->capacity; ++index) {
         empty_cell(table, index, true, true);
     } // Delete any remaining entries.
+    table->free = 0;
+    table->capacity = 0;
 
     // Wipe the method table.
     table->compare = NULL;
