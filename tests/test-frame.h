@@ -215,16 +215,12 @@
 		if (WIFSIGNALED(status)) { \
 			tf_fail_test = true; \
 			tf_retval = -2; \
-			fprintf(TEST_OUTPUT, \
-				"Child process was terminated by the signal: %d%s", \
-				WTERMSIG(status), ENDL__); \
+			FPRINTF("Child process was terminated by the signal: %d%s", WTERMSIG(status), ENDL__); \
 		} else if (WIFEXITED(status)) { \
 			tf_fail_test = true; \
 			tf_retval = WEXITSTATUS(status); \
 			if (tf_retval != 0) { \
-				fprintf(TEST_OUTPUT, \
-					"Child process exited with non-zero status: %d%s", \
-					tf_retval, ENDL__); \
+				FPRINTF("Child process exited with non-zero status: %d%s", tf_retval, ENDL__); \
 			} \
 		} \
 		CDC__(status); \
