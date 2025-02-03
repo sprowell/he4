@@ -84,9 +84,11 @@ START_ITEM(insert)
     } // Test over-filling.
     // Verify that none of the bad items made it in.
     for (size_t index = 0; index < he4_size(table); ++index) {
-        if (he4_index(table, index)->entry > 2047) {
+        he4_map_t * map = he4_index(table, index);
+        if (map->entry > 2047) {
             FAIL_ITEM("found bad item with index: %zu", index);
         }
+        HE4FREE(map);
     } // Check for bad items.
     ASSERT(he4_capacity(table) == 1024); IF_FAIL_STOP;
     ASSERT(he4_size(table) == 1024); IF_FAIL_STOP;
@@ -125,6 +127,7 @@ START_ITEM(cleanup)
         }
         --size;
         ASSERT(he4_size(table) == size);
+        HE4FREE(pentry);
     } // Check for bad items.
     ASSERT(he4_capacity(table) == 1024); IF_FAIL_STOP;
     ASSERT(he4_size(table) == 0); IF_FAIL_STOP;

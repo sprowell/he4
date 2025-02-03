@@ -179,6 +179,7 @@ START_ITEM(cleanup)
         }
         free(entry);
         free(rval);
+        free(pentry);
         --size;
         ASSERT(he4_size(table) == size);
     } // Check for bad items.
