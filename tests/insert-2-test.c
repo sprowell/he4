@@ -24,6 +24,15 @@
 char* strdup(const char*);
 #endif
 
+// Maximum word length is 20 characters.
+#define MAX_WORD_LENGTH 20
+
+inline size_t strlen_n(const char * pstr) {
+    size_t len = strlen(pstr);
+    if (len > MAX_WORD_LENGTH) len = MAX_WORD_LENGTH;
+    return len;
+}
+
 char * words[] = {
         // Each row is ten words.
         "the", "of", "and", "a", "to", "in", "is", "you", "that", "it",
@@ -44,7 +53,7 @@ char * num_to_word(size_t num) {
     while (num > 0) {
         size_t next = num % num_words;
         num = num / num_words;
-        size_t newlen = strlen(retval) + strlen(words[next]) + 2;
+        size_t newlen = strlen_n(retval) + strlen_n(words[next]) + 2;
         char * newretval = (char *)malloc(sizeof(char) * newlen);
         strcpy(newretval, retval);
         strcat(newretval, " ");
@@ -78,7 +87,7 @@ START_ITEM(fill)
         // These go in the table, so we do not deallocate them.
         he4_key_t key = (he4_key_t) num_to_word(index);
         he4_entry_t entry = (he4_entry_t) num_to_word(index + 7);
-        if (he4_insert(table, key, strlen(key), entry)) {
+        if (he4_insert(table, key, strlen_n(key), entry)) {
             FAIL_TEST("insertion at key: %s", key);
         }
         ASSERT(he4_capacity(table) == 1024); IF_FAIL_STOP;
@@ -96,7 +105,7 @@ START_ITEM(verify_full)
         he4_entry_t entry = num_to_word(index +7);
         // This is a pointer to the entry in the table, so it must not be
         // deallocated.
-        he4_entry_t * pentry = he4_find(table, key, strlen(key));
+        he4_entry_t * pentry = he4_find(table, key, strlen_n(key));
         if (pentry == NULL) {
             FAIL("missing entry for key: %s", key);
             free(key);
@@ -104,7 +113,7 @@ START_ITEM(verify_full)
 	        IF_FAIL_END_ITEM;
         }
         ASSERT(strcmp(*pentry, entry) == 0);
-        he4_entry_t entry2 = he4_get(table, key, strlen(key));
+        he4_entry_t entry2 = he4_get(table, key, strlen_n(key));
         ASSERT(strcmp(entry, entry2) == 0);
         free(key);
         free(entry);
@@ -118,7 +127,7 @@ START_ITEM(insert)
         // These do not go in the table, so they must be deallocated.
         he4_key_t key = num_to_word(index);
         he4_entry_t entry = num_to_word(index +7);
-        if (!he4_insert(table, key, strlen(key), entry)) {
+        if (!he4_insert(table, key, strlen_n(key), entry)) {
             // Do not deallocate, since this made it into the table.
             FAIL("inserted at index: %zu", index);
             free(key);
@@ -140,14 +149,14 @@ START_ITEM(force)
         // These go in the table, so we do not deallocate them.
         he4_key_t key = (he4_key_t) num_to_word(index);
         he4_entry_t entry = (he4_entry_t) num_to_word(index + 7);
-        if (!he4_force_insert(table, key, strlen(key), entry)) {
+        if (!he4_force_insert(table, key, strlen_n(key), entry)) {
             // Since these did not go in the table, deallocate them.
             FAIL("insertion at index: %zu", index);
             free(key);
             free(entry);
 	        IF_FAIL_END_ITEM;
         }
-        he4_entry_t entry2 = he4_get(table, key, strlen(key));
+        he4_entry_t entry2 = he4_get(table, key, strlen_n(key));
         if (strcmp(entry2, entry) != 0) {
             FAIL_ITEM("missing forced entry for key: %s", key);
         }
